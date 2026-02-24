@@ -12,7 +12,7 @@ export const AttendanceChart = ({
   subtitle = "avg. per week",
 }: AttendanceChartProps) => {
   return (
-    <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl border border-slate-200 dark:border-border-dark shadow-sm">
+    <div className="bg-white dark:bg-[#1a1d23] p-6 rounded-2xl border border-slate-200 dark:border-[#2d333d] shadow-sm">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h3 className="font-bold text-lg">{title}</h3>

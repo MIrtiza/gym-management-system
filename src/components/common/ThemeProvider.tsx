@@ -6,11 +6,11 @@ import { ThemeContext } from "@/lib/themeContext";
 type Theme = "light" | "dark";
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Read the theme that was set by the script in the head
+    // Sync with actual DOM state
     const isDark = document.documentElement.classList.contains("dark");
     const currentTheme: Theme = isDark ? "dark" : "light";
     setTheme(currentTheme);
@@ -19,11 +19,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   const applyThemeToDOM = (newTheme: Theme) => {
     const html = document.documentElement;
+
     if (newTheme === "dark") {
       html.classList.add("dark");
     } else {
       html.classList.remove("dark");
     }
+
     localStorage.setItem("theme", newTheme);
   };
 

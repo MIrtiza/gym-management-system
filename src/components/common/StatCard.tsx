@@ -32,7 +32,7 @@ export const StatCard = ({
   const trendIcon = trend?.isPositive ? "📈" : "📉";
 
   return (
-    <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl border border-slate-200 dark:border-border-dark shadow-sm group hover:shadow-md transition-all">
+    <div className="bg-white dark:bg-[#1a1d23] p-6 rounded-2xl border border-slate-200 dark:border-[#2d333d] shadow-sm group hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-4">
         <div
           className={`size-10 ${colorMap[accentColor]} rounded-xl flex items-center justify-center`}

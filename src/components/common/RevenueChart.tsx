@@ -26,7 +26,7 @@ export const RevenueChart = ({
   ],
 }: RevenueChartProps) => {
   return (
-    <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl border border-slate-200 dark:border-border-dark shadow-sm">
+    <div className="bg-white dark:bg-[#1a1d23] p-6 rounded-2xl border border-slate-200 dark:border-[#2d333d] shadow-sm">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h3 className="font-bold text-lg">{title}</h3>
@@ -47,7 +47,7 @@ export const RevenueChart = ({
             key={index}
             className="w-full flex flex-col items-center gap-2 group cursor-pointer"
           >
-            <div className="w-full bg-slate-100 dark:bg-background-dark rounded-lg overflow-hidden flex flex-col justify-end h-full">
+            <div className="w-full bg-slate-100 dark:bg-[#0a0a0a] rounded-lg overflow-hidden flex flex-col justify-end h-full">
               <div
                 className="bg-primary/40 group-hover:bg-primary transition-all rounded-t-lg"
                 style={{ height: `${item.percentage}%` }}

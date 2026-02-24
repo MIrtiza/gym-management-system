@@ -26,21 +26,21 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                try {
-                  const theme = localStorage.getItem('theme') || 
-                    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
+          (function() {
+            try {
+              const theme = localStorage.getItem('theme') || 'dark';
+              if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+              }
+            } catch (e) {}
+          })();
+        `,
           }}
         />
       </head>
+
       <body
         suppressHydrationWarning
         className={`${manrope.variable} bg-white dark:bg-[#0f1115] text-slate-900 dark:text-slate-100 font-display transition-colors duration-300`}

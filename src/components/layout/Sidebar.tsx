@@ -22,7 +22,7 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-border-dark bg-white dark:bg-[#0f1115] hidden md:flex flex-col h-screen overflow-hidden">
+    <aside className="w-64 shrink-0 border-r border-slate-200 dark:border-[#2d333d] bg-white dark:bg-[#0f1115] hidden md:flex flex-col h-screen overflow-hidden">
       {/* Logo */}
       <div className="p-6">
         <div className="flex items-center gap-2">
@@ -50,8 +50,8 @@ export const Sidebar = () => {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
                 isActive
-                  ? "bg-primary/10 text-primary border-r-3 border-primary"
-                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark hover:text-primary"
+                  ? "bg-[#0d6cf2]/10 text-[#0d6cf2] border-r-3 border-[#0d6cf2]"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1a1d23] hover:text-primary"
               }`}
             >
               <span className="text-lg">{item.icon}</span>
@@ -65,7 +65,7 @@ export const Sidebar = () => {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark hover:text-primary transition-all text-sm font-semibold"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1a1d23] hover:text-primary transition-all text-sm font-semibold"
             >
               <span className="text-lg">{item.icon}</span>
               {item.label}
@@ -75,7 +75,7 @@ export const Sidebar = () => {
       </nav>
 
       {/* User Profile */}
-      <div className="mt-auto p-4 border-t border-slate-200 dark:border-border-dark">
+      <div className="mt-auto p-4 border-t border-slate-200 dark:border-[#2d333d]">
         <div className="flex items-center gap-3 p-2">
           <div className="size-8 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
             <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold">

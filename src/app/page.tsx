@@ -17,7 +17,7 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2 bg-white dark:bg-surface-dark p-1 rounded-xl border border-slate-200 dark:border-border-dark shadow-sm">
-          <button className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-white">
+          <button className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-[#0d6cf2]">
             Daily
           </button>
           <button className="px-4 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-background-dark">

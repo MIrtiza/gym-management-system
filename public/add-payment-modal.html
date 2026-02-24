@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GymFlow Pro | Payments Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d6cf2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Main Content Container (Dashboard Background) -->
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Navigation Bar -->
+<header class="flex items-center justify-between border-b border-primary/10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md px-10 py-3 sticky top-0 z-10">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">bolt</span>
+<h2 class="text-xl font-extrabold tracking-tight dark:text-white">GymFlow Pro</h2>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary" href="#">Dashboard</a>
+<a class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary" href="#">Members</a>
+<a class="text-sm font-semibold text-primary" href="#">Payments</a>
+<a class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary" href="#">Schedules</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="pl-9 pr-4 py-2 bg-slate-200/50 dark:bg-slate-800/50 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64" placeholder="Search members..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-primary/20 border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Admin user profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZJFvVlnT1Cam1sDZYck3X06B0_lUP_IjAPnWVjUQlAtoA6CFFWnwA93g0asCNz6BuQGz8fd65BUDatvdySwZa_IHarZEutwRboL_o13r1JkPJs5KIzvkMV5-agakSmvLvyY5NZA9FB6lqhNPg5v40QxqQiDa_FC6WXuxypW3rybrHBYf7rATcYOIflxaydZCeaFN0ZXaHMUAvlijRA01sb5-UA4qgz01TeJ0pETv7_3_Hh1AG-Hb1M6WIcHf44A44vdTJy_PhyEWl"/>
+</div>
+</div>
+</header>
+<main class="px-10 py-8 flex flex-col gap-8 blur-[2px] pointer-events-none select-none">
+<!-- Summary Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Revenue</p>
+<span class="bg-emerald-500/10 text-emerald-500 text-xs px-2 py-1 rounded-full">+12.5%</span>
+</div>
+<p class="text-3xl font-bold">$42,500.00</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Active Memberships</p>
+<span class="bg-emerald-500/10 text-emerald-500 text-xs px-2 py-1 rounded-full">+3.2%</span>
+</div>
+<p class="text-3xl font-bold">850</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Outstanding Fees</p>
+<span class="bg-rose-500/10 text-rose-500 text-xs px-2 py-1 rounded-full">-5.1%</span>
+</div>
+<p class="text-3xl font-bold">$1,240.00</p>
+</div>
+</div>
+<!-- Dashboard Table -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<h3 class="font-bold text-lg">Recent Transactions</h3>
+<button class="bg-primary text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span> New Payment
+                    </button>
+</div>
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Date</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Member</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Fee Type</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Amount</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Method</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+<tr class="dark:bg-slate-900">
+<td class="px-6 py-4 text-sm text-slate-500">Oct 24, 2023</td>
+<td class="px-6 py-4 text-sm font-semibold">Alex Johnson</td>
+<td class="px-6 py-4"><span class="bg-primary/10 text-primary text-xs px-3 py-1 rounded-full font-medium">Membership</span></td>
+<td class="px-6 py-4 text-sm font-bold">$59.00</td>
+<td class="px-6 py-4"><span class="text-emerald-500 text-xs font-bold">Paid</span></td>
+<td class="px-6 py-4 text-sm text-slate-500">Card</td>
+</tr>
+<tr class="dark:bg-slate-900">
+<td class="px-6 py-4 text-sm text-slate-500">Oct 24, 2023</td>
+<td class="px-6 py-4 text-sm font-semibold">Maria Garcia</td>
+<td class="px-6 py-4"><span class="bg-primary/10 text-primary text-xs px-3 py-1 rounded-full font-medium">Personal Training</span></td>
+<td class="px-6 py-4 text-sm font-bold">$150.00</td>
+<td class="px-6 py-4"><span class="text-emerald-500 text-xs font-bold">Paid</span></td>
+<td class="px-6 py-4 text-sm text-slate-500">Apple Pay</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+<!-- MODAL OVERLAY -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 backdrop-blur-sm bg-slate-950/60">
+<!-- Modal Container -->
+<div class="w-full max-w-lg bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<!-- Modal Header -->
+<div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/20">
+<div>
+<h3 class="text-xl font-bold dark:text-white">Collect Payment</h3>
+<p class="text-sm text-slate-500">Fill in transaction details to process</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-6 space-y-6">
+<!-- Member Search/Selection -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Recipient Member</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary">person_search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="Search member name or ID..." type="text"/>
+</div>
+<p class="text-[10px] text-slate-400 italic">Start typing to see matching members</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Fee Type -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Fee Type</label>
+<select class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary outline-none">
+<option>Membership</option>
+<option>Personal Training</option>
+<option>Group Class</option>
+<option>Others</option>
+</select>
+</div>
+<!-- Amount -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Amount</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+<input class="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary font-bold text-lg outline-none" type="number" value="59.00"/>
+</div>
+</div>
+</div>
+<!-- Payment Method -->
+<div class="space-y-3">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Payment Method</label>
+<div class="grid grid-cols-2 gap-2">
+<label class="relative flex items-center justify-center gap-2 p-3 border-2 border-primary bg-primary/5 dark:bg-primary/10 rounded-lg cursor-pointer transition-all">
+<input checked="" class="sr-only" name="pay_method" type="radio"/>
+<span class="material-symbols-outlined text-primary text-xl">credit_card</span>
+<span class="text-sm font-bold text-primary">Card</span>
+</label>
+<label class="relative flex items-center justify-center gap-2 p-3 border-2 border-slate-200 dark:border-slate-800 hover:border-primary/50 rounded-lg cursor-pointer transition-all">
+<input class="sr-only" name="pay_method" type="radio"/>
+<span class="material-symbols-outlined text-slate-500 text-xl">payments</span>
+<span class="text-sm font-semibold text-slate-600 dark:text-slate-400">Cash</span>
+</label>
+<label class="relative flex items-center justify-center gap-2 p-3 border-2 border-slate-200 dark:border-slate-800 hover:border-primary/50 rounded-lg cursor-pointer transition-all">
+<input class="sr-only" name="pay_method" type="radio"/>
+<span class="material-symbols-outlined text-slate-500 text-xl">account_balance</span>
+<span class="text-sm font-semibold text-slate-600 dark:text-slate-400">Bank</span>
+</label>
+<label class="relative flex items-center justify-center gap-2 p-3 border-2 border-slate-200 dark:border-slate-800 hover:border-primary/50 rounded-lg cursor-pointer transition-all">
+<input class="sr-only" name="pay_method" type="radio"/>
+<span class="material-symbols-outlined text-slate-500 text-xl">ios</span>
+<span class="text-sm font-semibold text-slate-600 dark:text-slate-400">Apple Pay</span>
+</label>
+</div>
+</div>
+<!-- Process Payment Button -->
+<button class="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined">verified_user</span>
+                        Process Payment
+                    </button>
+<div class="pt-2 text-center">
+<button class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white text-sm font-medium">Cancel Transaction</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>
