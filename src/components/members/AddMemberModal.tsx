@@ -5,7 +5,18 @@ import { useState } from "react";
 interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: NewMemberFormState) => void;
+}
+
+export interface NewMemberFormState {
+  fullName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: string;
+  membershipPlan: string;
+  startDate: string;
+  sendWelcomeEmail: boolean;
 }
 
 export const AddMemberModal = ({
@@ -13,186 +24,277 @@ export const AddMemberModal = ({
   onClose,
   onSubmit,
 }: AddMemberModalProps) => {
-  const [formData, setFormData] = useState({
-    memberName: "",
-    feeType: "membership",
-    amount: "59.00",
-    paymentMethod: "card",
+  const [form, setForm] = useState<NewMemberFormState>({
+    fullName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "",
+    membershipPlan: "",
+    startDate: "",
+    sendWelcomeEmail: true,
   });
 
+  if (!isOpen) return null;
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleToggleWelcome = () => {
+    setForm((prev) => ({ ...prev, sendWelcomeEmail: !prev.sendWelcomeEmail }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit?.(formData);
-    setFormData({
-      memberName: "",
-      feeType: "membership",
-      amount: "59.00",
-      paymentMethod: "card",
-    });
+    onSubmit?.(form);
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 backdrop-blur-sm bg-slate-950/60">
-      {/* Modal Container */}
-      <div className="w-full max-w-lg bg-white dark:bg-[#1a1d23] rounded-xl shadow-2xl border border-slate-200 dark:border-[#2d333d] overflow-hidden">
-        {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-[#2d333d] flex justify-between items-center bg-slate-50 dark:bg-[#0a0a0a]/20">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+      <div className="bg-[#1a202c] dark:bg-[#161b22] w-full max-w-2xl rounded-xl shadow-2xl border border-white/10 overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-6 border-b border-white/10">
           <div>
-            <h3 className="text-xl font-bold dark:text-white">
-              Collect Payment
-            </h3>
-            <p className="text-sm text-slate-500">
-              Fill in transaction details to process
+            <h2 className="text-2xl font-bold text-white tracking-tight">
+              Add New Member
+            </h2>
+            <p className="text-slate-400 text-sm mt-1">
+              Register a new athlete and assign a membership plan.
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+            className="text-slate-400 hover:text-white transition-colors"
+            aria-label="Close add member modal"
           >
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Member Search/Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Recipient Member
-            </label>
-            <div className="relative group">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary">
-                👤
-              </span>
-              <input
-                type="text"
-                name="memberName"
-                value={formData.memberName}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2d333d] rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
-                placeholder="Search member name or ID..."
-              />
-            </div>
-            <p className="text-[10px] text-slate-400 italic">
-              Start typing to see matching members
-            </p>
-          </div>
+        {/* Body / Form */}
+        <div className="px-8 py-8 overflow-y-auto max-h-[70vh]">
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            {/* Personal Information */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wider">
+                <span className="text-lg">👤</span>
+                <span>Personal Information</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      🪪
+                    </span>
+                    <input
+                      name="fullName"
+                      value={form.fullName}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600"
+                      placeholder="e.g. Alexander Pierce"
+                      type="text"
+                    />
+                  </div>
+                </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Fee Type */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Fee Type
-              </label>
-              <select
-                name="feeType"
-                value={formData.feeType}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2d333d] rounded-lg focus:ring-2 focus:ring-primary outline-none"
-              >
-                <option value="membership">Membership</option>
-                <option value="training">Personal Training</option>
-                <option value="class">Group Class</option>
-                <option value="other">Others</option>
-              </select>
-            </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      ✉️
+                    </span>
+                    <input
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600"
+                      placeholder="alexander@example.com"
+                      type="email"
+                    />
+                  </div>
+                </div>
 
-            {/* Amount */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Amount
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
-                  $
-                </span>
-                <input
-                  type="number"
-                  name="amount"
-                  value={formData.amount}
-                  onChange={handleChange}
-                  step="0.01"
-                  className="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2d333d] rounded-lg focus:ring-2 focus:ring-primary font-bold text-lg outline-none"
-                />
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      📞
+                    </span>
+                    <input
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600"
+                      placeholder="+1 (555) 000-0000"
+                      type="tel"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Date of Birth
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      🎂
+                    </span>
+                    <input
+                      name="dateOfBirth"
+                      value={form.dateOfBirth}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all scheme-dark"
+                      type="date"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Gender
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      ⚧
+                    </span>
+                    <select
+                      name="gender"
+                      value={form.gender}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                      <option value="prefer-not-to-say">
+                        Prefer not to say
+                      </option>
+                    </select>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                      ▾
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Payment Method */}
-          <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Payment Method
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { value: "card", label: "Card", icon: "💳" },
-                { value: "cash", label: "Cash", icon: "💵" },
-                { value: "bank", label: "Bank", icon: "🏦" },
-                { value: "apple", label: "Apple Pay", icon: "🍎" },
-              ].map((method) => (
-                <label
-                  key={method.value}
-                  className={`relative flex items-center justify-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.paymentMethod === method.value
-                      ? "border-primary bg-primary text-white"
-                      : "border-slate-200 dark:border-slate-800 hover:border-primary/50"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={method.value}
-                    checked={formData.paymentMethod === method.value}
-                    onChange={handleChange}
-                    className="sr-only"
-                  />
-                  <span className={`text-xl`}>{method.icon}</span>
-                  <span
-                    className={`text-sm font-bold ${
-                      formData.paymentMethod === method.value
-                        ? "text-white"
-                        : "text-slate-600 dark:text-slate-400"
-                    }`}
-                  >
-                    {method.label}
-                  </span>
-                </label>
-              ))}
+            {/* Membership Details */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wider">
+                <span className="text-lg">💳</span>
+                <span>Membership Details</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Membership Plan
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      ✅
+                    </span>
+                    <select
+                      name="membershipPlan"
+                      value={form.membershipPlan}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none"
+                    >
+                      <option value="">Choose a Plan</option>
+                      <option value="starter">Starter Plan - $29/mo</option>
+                      <option value="pro">Pro Plan - $59/mo</option>
+                      <option value="elite">Elite Plan - $99/mo</option>
+                    </select>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                      ▾
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Start Date
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      📅
+                    </span>
+                    <input
+                      name="startDate"
+                      value={form.startDate}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all scheme-dark"
+                      type="date"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Process Payment Button */}
+            {/* Notification toggle */}
+            <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <span className="text-primary text-xl">🔔</span>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white">
+                  Send Welcome Email
+                </p>
+                <p className="text-xs text-slate-400">
+                  The member will receive their login credentials immediately.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleWelcome}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  form.sendWelcomeEmail ? "bg-primary" : "bg-slate-700"
+                }`}
+                aria-pressed={form.sendWelcomeEmail}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                    form.sendWelcomeEmail ? "translate-x-5" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="px-8 py-6 border-t border-white/10 bg-slate-900/30 flex items-center justify-end gap-4">
           <button
-            type="submit"
-            className="w-full bg-[#0d6cf2] hover:bg-primary/90 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all"
           >
-            <span>✓</span>
-            Process Payment
+            Cancel
           </button>
-
-          <div className="pt-2 text-center">
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white text-sm font-medium"
-            >
-              Cancel Transaction
-            </button>
-          </div>
-        </form>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="px-8 py-2.5 bg-primary hover:bg-primary/90 rounded-lg text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
+          >
+            <span>➕</span>
+            Add Member
+          </button>
+        </div>
       </div>
     </div>
   );
 };
+

@@ -12,12 +12,10 @@ export const Sidebar = () => {
     { href: "/attendance", label: "Attendance", icon: "✓" },
     { href: "/payments", label: "Payments", icon: "💰" },
     { href: "/memberships", label: "Memberships", icon: "💳" },
-    { href: "/services", label: "Services", icon: "🏋️" },
   ];
 
   const bottomItems = [
     { href: "/reports", label: "Reports", icon: "📈" },
-    { href: "/theme", label: "Theme", icon: "🎨" },
     { href: "/settings", label: "Settings", icon: "⚙️" },
   ];
 
@@ -60,7 +58,7 @@ export const Sidebar = () => {
           );
         })}
 
-        <div className="pt-10">
+        <div className="pt-10 border-t border-slate-200 dark:border-[#2d333d]">
           {bottomItems.map((item) => (
             <Link
               key={item.href}
@@ -77,8 +75,8 @@ export const Sidebar = () => {
       {/* User Profile */}
       <div className="mt-auto p-4 border-t border-slate-200 dark:border-[#2d333d]">
         <div className="flex items-center gap-3 p-2">
-          <div className="size-8 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
-            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold">
+          <div className="size-8 rounded-full bg-slate-700 overflow-hidden shrink-0">
+            <div className="w-full h-full bg-linear-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold">
               AR
             </div>
           </div>
@@ -88,7 +86,7 @@ export const Sidebar = () => {
             </p>
             <p className="text-[10px] text-slate-500">Admin Account</p>
           </div>
-          <button className="text-slate-500 hover:text-primary transition-colors flex-shrink-0">
+          <button className="text-slate-500 hover:text-primary transition-colors shrink-0">
             🚪
           </button>
         </div>

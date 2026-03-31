@@ -1,11 +1,13 @@
 "use client";
 
 import { Member } from "@/types/member";
-import { useState } from "react";
+import * as XLSX from "xlsx";
+import { useRef, useState } from "react";
 
 interface MembersTableProps {
   members: Member[];
   onAddMember?: () => void;
+  onImportMembers?: (imported: Member[]) => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -32,8 +34,193 @@ const getStatusLabel = (status: string) => {
   }
 };
 
-export const MembersTable = ({ members, onAddMember }: MembersTableProps) => {
+export const MembersTable = ({
+  members,
+  onAddMember,
+  onImportMembers,
+}: MembersTableProps) => {
   const [activeTab, setActiveTab] = useState("all");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const exportMembersToExcel = () => {
+    const exportRows = members.map((m) => ({
+      Name: m.name,
+      Email: m.email,
+      "Member ID": m.memberId,
+      "Avatar URL": m.avatar,
+      "Membership Plan": m.membershipPlan,
+      "Membership Cost": m.membershipCost,
+      Status: m.status,
+      "Expiry Date": m.expiryDate,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
+
+    const wbout = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const blob = new Blob([wbout], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `members_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const normalizeKey = (value: string) =>
+    value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const normalizeStatus = (raw: unknown): Member["status"] => {
+    const s = String(raw ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/[_-]/g, " ");
+    if (!s) return "pending";
+    if (s === "active") return "active";
+    if (s === "inactive") return "inactive";
+    if (s.includes("expiring") || s.includes("expiring soon")) {
+      return "expiring-soon";
+    }
+    if (s.includes("pending")) return "pending";
+    return "pending";
+  };
+
+  const formatExpiry = (value: unknown) => {
+    if (value === null || value === undefined || value === "") return "";
+    if (value instanceof Date) {
+      return value.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
+    }
+    if (typeof value === "number") {
+      // Excel serial date -> y/m/d
+      type ParseDateCodeResult = { y: number; m: number; d: number };
+      const ssf = (XLSX as unknown as {
+        SSF?: { parse_date_code?: (x: number) => ParseDateCodeResult };
+      }).SSF;
+      const parsed = ssf?.parse_date_code?.(value);
+      if (parsed) {
+        const date = new Date(parsed.y, parsed.m - 1, parsed.d);
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        });
+      }
+    }
+    return String(value);
+  };
+
+  const parseMembersFromExcel = (workbook: XLSX.WorkBook): Member[] => {
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+      defval: "",
+    });
+
+    const defaultAvatar =
+      "data:image/svg+xml;charset=utf-8," +
+      encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="16" fill="#0d6cf2" /><text x="40" y="48" text-anchor="middle" font-size="22" font-family="Arial" fill="#ffffff">M</text></svg>`,
+      );
+
+    return rows
+      .map((row, index) => {
+        const keyMap: Record<string, unknown> = {};
+        Object.keys(row).forEach((k) => {
+          keyMap[normalizeKey(k)] = row[k];
+        });
+
+        const name = String(keyMap[normalizeKey("Name")] ?? "");
+        const email = String(keyMap[normalizeKey("Email")] ?? "");
+        const memberId =
+          String(
+            keyMap[normalizeKey("Member ID")] ??
+              keyMap[normalizeKey("MemberId")] ??
+              keyMap[normalizeKey("MemberID")] ??
+              "",
+          );
+        const avatar =
+          String(
+            keyMap[normalizeKey("Avatar URL")] ??
+              keyMap[normalizeKey("Avatar")] ??
+              defaultAvatar,
+          );
+        const membershipPlan =
+          String(keyMap[normalizeKey("Membership Plan")] ?? "");
+        const membershipCost =
+          String(keyMap[normalizeKey("Membership Cost")] ?? "");
+        const status = normalizeStatus(keyMap[normalizeKey("Status")] ?? "");
+        const expiryDate = formatExpiry(
+          keyMap[normalizeKey("Expiry Date")] ?? "",
+        );
+
+        if (!name && !memberId) return null;
+
+        return {
+          id: memberId ? memberId : `m_${Date.now()}_${index}`,
+          name: String(name || "").trim() || `Member ${index + 1}`,
+          email: String(email || "").trim(),
+          memberId: String(memberId || `#IC-NEW-${Date.now()}-${index}`),
+          avatar: String(avatar || defaultAvatar),
+          membershipPlan: String(membershipPlan || "Standard"),
+          membershipCost: String(membershipCost || ""),
+          status,
+          expiryDate: String(expiryDate || ""),
+        } as Member;
+      })
+      .filter(Boolean) as Member[];
+  };
+
+  const importMembersFromExcelFile = async (file: File) => {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const imported = parseMembersFromExcel(workbook);
+    onImportMembers?.(imported);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isExcel =
+      file.name.toLowerCase().endsWith(".xlsx") ||
+      file.name.toLowerCase().endsWith(".xls");
+
+    if (!isExcel) {
+      alert("Please upload an .xlsx or .xls Excel file.");
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      await importMembersFromExcelFile(file);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Unknown import error";
+      alert(`Failed to import Excel: ${msg}`);
+    } finally {
+      e.target.value = "";
+    }
+  };
 
   const tabs = ["All Members", "Active", "Inactive", "Pending"];
 
@@ -62,9 +249,28 @@ export const MembersTable = ({ members, onAddMember }: MembersTableProps) => {
             <span>🔍</span>
             Filter
           </button>
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-[#2d333d] text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#2d333d] transition-colors">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <button
+            type="button"
+            onClick={handleImportClick}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-[#2d333d] text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#2d333d] transition-colors"
+          >
+            <span>⬆️</span>
+            Import (.xlsx)
+          </button>
+          <button
+            type="button"
+            onClick={exportMembersToExcel}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-[#2d333d] text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#2d333d] transition-colors"
+          >
             <span>⬇️</span>
-            Export
+            Export (.xlsx)
           </button>
         </div>
       </div>
@@ -99,7 +305,7 @@ export const MembersTable = ({ members, onAddMember }: MembersTableProps) => {
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-full border border-slate-200 dark:border-[#2d333d] overflow-hidden bg-slate-100 dark:bg-[#2d333d]\">
+                    <div className="size-10 rounded-full border border-slate-200 dark:border-[#2d333d] overflow-hidden bg-slate-100 dark:bg-[#2d333d]">
                       <img
                         src={member.avatar}
                         alt={member.name}
@@ -161,10 +367,10 @@ export const MembersTable = ({ members, onAddMember }: MembersTableProps) => {
       </div>
 
       {/* Pagination */}
-      <div className="px-6 py-4 bg-slate-50 dark:bg-[#0a0a0a]/50 border-t border-slate-200 dark:border-[#2d333d] flex items-center justify-between\">
+      <div className="px-6 py-4 bg-slate-50 dark:bg-[#0a0a0a]/50 border-t border-slate-200 dark:border-[#2d333d] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <p className="text-xs text-slate-500 font-medium">Showing</p>
-          <select className="bg-white dark:bg-[#1a1d23] border border-slate-200 dark:border-[#2d333d] rounded-md text-xs py-1 pl-2 pr-8 font-bold focus:ring-primary focus:border-primary transition-all\">
+          <select className="bg-white dark:bg-[#1a1d23] border border-slate-200 dark:border-[#2d333d] rounded-md text-xs py-1 pl-2 pr-8 font-bold focus:ring-primary focus:border-primary transition-all">
             <option>10</option>
             <option>25</option>
             <option>50</option>
@@ -173,7 +379,7 @@ export const MembersTable = ({ members, onAddMember }: MembersTableProps) => {
         </div>
         <div className="flex items-center gap-1">
           <button
-            className="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-[#2d333d] text-slate-400 hover:bg-slate-100 dark:hover:bg-[#2d333d] transition-all disabled:opacity-50\"
+            className="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-[#2d333d] text-slate-400 hover:bg-slate-100 dark:hover:bg-[#2d333d] transition-all disabled:opacity-50"
             disabled
           >
             ❮

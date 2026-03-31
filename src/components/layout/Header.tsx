@@ -3,7 +3,11 @@
 import { useTheme } from "@/lib/themeContext";
 import { useEffect, useState } from "react";
 
-export const Header = () => {
+interface HeaderProps {
+  onOpenQuickCheckin?: () => void;
+}
+
+export const Header = ({ onOpenQuickCheckin }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -26,7 +30,11 @@ export const Header = () => {
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <button className="bg-[#0d6cf2] hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
+        <button
+          type="button"
+          onClick={onOpenQuickCheckin}
+          className="bg-[#0d6cf2] hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+        >
           <span>✓</span>
           Check-in Member
         </button>
@@ -56,7 +64,7 @@ export const Header = () => {
                 Gym Manager
               </p>
             </div>
-            <div className="size-10 rounded-xl bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+            <div className="size-10 rounded-xl bg-linear-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
               AR
             </div>
           </div>
@@ -65,3 +73,4 @@ export const Header = () => {
     </header>
   );
 };
+

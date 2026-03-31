@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reports &amp; Analytics | IRON OBSIDIAN</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #101722;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#101722",
+                        "on-secondary-fixed": "#0f172a",
+                        "tertiary-fixed": "#ffedd5",
+                        "on-primary-fixed": "#1e3a8a",
+                        "inverse-on-surface": "#0f172a",
+                        "outline-variant": "#1e293b",
+                        "tertiary-fixed-dim": "#fdba74",
+                        "secondary-fixed-dim": "#94a3b8",
+                        "primary-fixed-dim": "#93c5fd",
+                        "inverse-surface": "#f1f5f9",
+                        "on-primary-container": "#ffffff",
+                        "secondary-container": "#1e293b",
+                        "on-secondary-fixed-variant": "#334155",
+                        "on-error-container": "#fecaca",
+                        "on-background": "#f8fafc",
+                        "surface-container-high": "#242d3a",
+                        "outline": "#334155",
+                        "surface-tint": "#0d6cf2",
+                        "surface-dim": "#0b0f16",
+                        "on-primary-fixed-variant": "#1d4ed8",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#dbeafe",
+                        "tertiary-container": "#431407",
+                        "surface-variant": "#1a222e",
+                        "on-surface-variant": "#94a3b8",
+                        "surface-container-lowest": "#080b10",
+                        "on-primary": "#ffffff",
+                        "primary": "#0d6cf2",
+                        "surface-container": "#1a222e",
+                        "on-secondary-container": "#cbd5e1",
+                        "primary-container": "#0d6cf2",
+                        "on-tertiary-fixed-variant": "#9a3412",
+                        "surface-container-highest": "#2d3846",
+                        "on-tertiary-container": "#fed7aa",
+                        "error": "#ef4444",
+                        "error-container": "#7f1d1d",
+                        "secondary": "#334155",
+                        "on-secondary": "#f8fafc",
+                        "on-surface": "#f8fafc",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#1a222e",
+                        "surface-container-low": "#101722",
+                        "surface": "#101722",
+                        "on-tertiary-fixed": "#7c2d12",
+                        "tertiary": "#f97316",
+                        "inverse-primary": "#60a5fa",
+                        "secondary-fixed": "#e2e8f0"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="text-on-background selection:bg-primary/30">
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 h-full w-64 z-50 bg-[#101722] flex flex-col py-6 px-4 shadow-xl">
+<div class="mb-10 px-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+</div>
+<div>
+<h1 class="text-lg font-extrabold text-[#0d6cf2] tracking-tighter uppercase leading-none">IRON OBSIDIAN</h1>
+<p class="text-[0.6rem] font-semibold text-slate-500 uppercase tracking-[0.2em] mt-1">Elite Performance</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 hover:bg-[#1a222e] hover:text-[#0d6cf2] transition-colors duration-200 group translate-x-1 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 hover:bg-[#1a222e] hover:text-[#0d6cf2] transition-colors duration-200 group translate-x-1 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span>Members</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 hover:bg-[#1a222e] hover:text-[#0d6cf2] transition-colors duration-200 group translate-x-1 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">how_to_reg</span>
+<span>Attendance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 hover:bg-[#1a222e] hover:text-[#0d6cf2] transition-colors duration-200 group translate-x-1 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">payments</span>
+<span>Payments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 hover:bg-[#1a222e] hover:text-[#0d6cf2] transition-colors duration-200 group translate-x-1 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">card_membership</span>
+<span>Memberships</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 hover:bg-[#1a222e] hover:text-[#0d6cf2] transition-colors duration-200 group translate-x-1 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">fitness_center</span>
+<span>Services</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-white bg-[#0d6cf2]/10 border-r-4 border-[#0d6cf2] translate-x-1 duration-200 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">bar_chart</span>
+<span>Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 hover:bg-[#1a222e] hover:text-[#0d6cf2] transition-colors duration-200 group translate-x-1 font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4">
+<button class="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Add New Member</span>
+</button>
+<div class="pt-6 border-t border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-error transition-colors font-manrope font-semibold text-[0.75rem] uppercase tracking-[0.1em]" href="#">
+<span class="material-symbols-outlined text-xl">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar Component -->
+<header class="sticky top-0 z-40 bg-[#101722] shadow-sm flex justify-between items-center w-full px-6 py-3 border-b border-surface-container">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full bg-[#1a222e] border-none rounded-lg pl-10 pr-4 py-2 text-sm text-on-surface placeholder:text-slate-500 focus:ring-2 focus:ring-primary" placeholder="Search analytics or members..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-8 mr-4">
+<a class="font-manrope font-medium text-[0.875rem] tracking-tight text-[#0d6cf2] font-bold" href="#">Analytics</a>
+<a class="font-manrope font-medium text-[0.875rem] tracking-tight text-slate-400 hover:text-white transition-all" href="#">Export</a>
+<a class="font-manrope font-medium text-[0.875rem] tracking-tight text-slate-400 hover:text-white transition-all" href="#">Support</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-[#1a222e] hover:text-white rounded-full transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-[#1a222e] hover:text-white rounded-full transition-all">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-px bg-slate-800 mx-2"></div>
+<div class="flex items-center gap-3 pl-2">
+<div class="text-right">
+<p class="text-xs font-bold text-white uppercase tracking-wider">Admin User</p>
+<p class="text-[10px] text-primary font-semibold">Super Admin</p>
+</div>
+<img alt="Admin Profile Avatar" class="w-10 h-10 rounded-full border-2 border-primary/20 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2fZJ9tbGwj2q49tbr1pG_C2pCDns8_AgUmOBBQgMCnFUEjN8SuFR8mwb1y8nxqt0OZNmHx8_n0hhZWvMxKV-W0QF_dH3U4SZTCn5CfUQWzQ9kg9oLet4hm1kcl5fykL_e1u487WJ8visj6Afrohkn2psw2MOdgH5TZQVXnoxsEG5c2cTh2aEU9Cnft4bWBflRO_WKA_1QxA9AePD_WtZJHc8PeBxm0fmzhEXa6CdJ2EOefXLw2x7_eoT1eEsZLRec3Pq752D5C2QK"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Analytics Content -->
+<section class="p-8 space-y-8 flex-1">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-3xl font-extrabold tracking-tighter text-white uppercase">REPORTS &amp; ANALYTICS</h2>
+<p class="text-slate-500 font-medium mt-1">Real-time performance metrics for Iron Obsidian Gym.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 bg-surface-container hover:bg-surface-container-highest text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+                    Last 30 Days
+                </button>
+<button class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/25 transition-all">
+<span class="material-symbols-outlined text-lg">download</span>
+                    Generate Report
+                </button>
+</div>
+</div>
+<!-- Summary Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1: Total Revenue -->
+<div class="bg-surface-container p-6 rounded-xl border border-primary/5 shadow-lg relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-primary/10 transition-all"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-green-400 text-xs font-bold flex items-center bg-green-400/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs mr-1">trending_up</span> +12.5%
+                    </span>
+</div>
+<p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">Total Revenue (Monthly)</p>
+<h3 class="text-2xl font-extrabold text-white mt-1">$42,850.00</h3>
+</div>
+<!-- Card 2: New Members -->
+<div class="bg-surface-container p-6 rounded-xl border border-primary/5 shadow-lg relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">person_add</span>
+</div>
+<span class="text-primary text-xs font-bold flex items-center bg-primary/10 px-2 py-1 rounded-full">
+                        This Month
+                    </span>
+</div>
+<p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">New Member Signups</p>
+<h3 class="text-2xl font-extrabold text-white mt-1">128</h3>
+</div>
+<!-- Card 3: Active Memberships -->
+<div class="bg-surface-container p-6 rounded-xl border border-primary/5 shadow-lg relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-slate-400 text-xs font-bold flex items-center bg-slate-400/10 px-2 py-1 rounded-full">
+                        94% Active
+                    </span>
+</div>
+<p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">Active Memberships</p>
+<h3 class="text-2xl font-extrabold text-white mt-1">1,402</h3>
+</div>
+<!-- Card 4: Attendance Rate -->
+<div class="bg-surface-container p-6 rounded-xl border border-primary/5 shadow-lg relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<span class="text-orange-400 text-xs font-bold flex items-center bg-orange-400/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs mr-1">history</span> Avg. Daily
+                    </span>
+</div>
+<p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">Attendance Rate</p>
+<h3 class="text-2xl font-extrabold text-white mt-1">78.4%</h3>
+</div>
+</div>
+<!-- Expanded Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full min-h-[500px]">
+<!-- Bar Chart: Monthly Revenue Trends -->
+<div class="bg-surface-container p-8 rounded-xl border border-primary/5 shadow-xl flex flex-col">
+<div class="flex justify-between items-center mb-10">
+<h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+<span class="w-1 h-4 bg-primary rounded-full"></span>
+                        Monthly Revenue Trends
+                    </h4>
+<div class="flex gap-2">
+<div class="w-3 h-3 rounded-full bg-primary/40"></div>
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+</div>
+</div>
+<!-- Mock Bar Chart Visualization - Expanded Height -->
+<div class="flex-1 flex items-end justify-between gap-6 px-4 pb-4">
+<div class="flex flex-col items-center flex-1 group h-full justify-end">
+<div class="w-full bg-primary/20 rounded-t-lg h-[40%] group-hover:bg-primary/40 transition-all relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface-container-highest text-xs text-white px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">$28k</div>
+</div>
+<span class="text-[10px] font-bold text-slate-500 uppercase mt-4">Jan</span>
+</div>
+<div class="flex flex-col items-center flex-1 group h-full justify-end">
+<div class="w-full bg-primary/20 rounded-t-lg h-[55%] group-hover:bg-primary/40 transition-all relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface-container-highest text-xs text-white px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">$32k</div>
+</div>
+<span class="text-[10px] font-bold text-slate-500 uppercase mt-4">Feb</span>
+</div>
+<div class="flex flex-col items-center flex-1 group h-full justify-end">
+<div class="w-full bg-primary/20 rounded-t-lg h-[48%] group-hover:bg-primary/40 transition-all relative"></div>
+<span class="text-[10px] font-bold text-slate-500 uppercase mt-4">Mar</span>
+</div>
+<div class="flex flex-col items-center flex-1 group h-full justify-end">
+<div class="w-full bg-primary/20 rounded-t-lg h-[72%] group-hover:bg-primary/40 transition-all relative"></div>
+<span class="text-[10px] font-bold text-slate-500 uppercase mt-4">Apr</span>
+</div>
+<div class="flex flex-col items-center flex-1 group h-full justify-end">
+<div class="w-full bg-primary/20 rounded-t-lg h-[85%] group-hover:bg-primary/40 transition-all relative"></div>
+<span class="text-[10px] font-bold text-slate-500 uppercase mt-4">May</span>
+</div>
+<div class="flex flex-col items-center flex-1 group h-full justify-end">
+<div class="w-full bg-primary rounded-t-lg h-[95%] shadow-lg shadow-primary/20 relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-xs text-white px-3 py-1 rounded font-bold shadow-lg">$42k</div>
+</div>
+<span class="text-[10px] font-bold text-white uppercase mt-4">Jun</span>
+</div>
+</div>
+</div>
+<!-- Line Chart: Member Check-ins (Weekly) -->
+<div class="bg-surface-container p-8 rounded-xl border border-primary/5 shadow-xl relative overflow-hidden flex flex-col">
+<div class="flex justify-between items-center mb-10">
+<h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+<span class="w-1 h-4 bg-tertiary rounded-full"></span>
+                        Member Check-ins (Weekly)
+                    </h4>
+<select class="bg-transparent border-none text-[10px] font-bold text-slate-400 uppercase tracking-widest focus:ring-0 cursor-pointer">
+<option>Current Week</option>
+<option>Last Week</option>
+</select>
+</div>
+<!-- Mock Line Chart Path - Expanded View -->
+<div class="flex-1 relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 400 200">
+<defs>
+<lineargradient id="lineGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:rgba(13, 108, 242, 0.4)"></stop>
+<stop offset="100%" style="stop-color:rgba(13, 108, 242, 0)"></stop>
+</lineargradient>
+</defs>
+<!-- Grid lines -->
+<line stroke="#2d3846" stroke-width="0.5" x1="0" x2="400" y1="50" y2="50"></line>
+<line stroke="#2d3846" stroke-width="0.5" x1="0" x2="400" y1="100" y2="100"></line>
+<line stroke="#2d3846" stroke-width="0.5" x1="0" x2="400" y1="150" y2="150"></line>
+<!-- Area Fill -->
+<path d="M0,180 L50,140 L100,160 L150,100 L200,120 L250,60 L300,90 L350,40 L400,70 L400,200 L0,200 Z" fill="url(#lineGradient)"></path>
+<!-- Main Line -->
+<path d="M0,180 L50,140 L100,160 L150,100 L200,120 L250,60 L300,90 L350,40 L400,70" fill="none" stroke="#0d6cf2" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+<!-- Key Points -->
+<circle cx="250" cy="60" fill="#0d6cf2" r="4"></circle>
+<circle cx="350" cy="40" fill="#0d6cf2" r="4"></circle>
+</svg>
+<div class="flex justify-between mt-8">
+<span class="text-[10px] font-bold text-slate-500 uppercase">Mon</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Tue</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Wed</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Thu</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Fri</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Sat</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Sun</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="mt-auto py-6 px-8 border-t border-surface-container">
+<div class="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+<span>© 2024 IRON OBSIDIAN CORE SYSTEMS</span>
+<div class="flex gap-6">
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary transition-colors" href="#">Audit Logs</a>
+<a class="hover:text-primary transition-colors" href="#">Support ID: 0922-XR</a>
+</div>
+</div>
+</footer>
+</main>
+</body></html>
