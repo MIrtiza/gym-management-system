@@ -49,6 +49,96 @@ export const calculateAge = (dateOfBirth: string): number => {
   return age;
 };
 
+// Country code to phone format mapping
+export const COUNTRY_PHONE_FORMATS = {
+  US: { code: '+1', maxDigits: 11, regex: /^1\d{10}$/, format: (num: string) => `+1 (${num.slice(1, 4)}) ${num.slice(4, 7)}-${num.slice(7)}` },
+  UK: { code: '+44', maxDigits: 12, regex: /^44\d{10}$/, format: (num: string) => `+44 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  CA: { code: '+1', maxDigits: 11, regex: /^1\d{10}$/, format: (num: string) => `+1 (${num.slice(1, 4)}) ${num.slice(4, 7)}-${num.slice(7)}` },
+  AU: { code: '+61', maxDigits: 11, regex: /^61\d{9}$/, format: (num: string) => `+61 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  IN: { code: '+91', maxDigits: 12, regex: /^91\d{10}$/, format: (num: string) => `+91 ${num.slice(2, 5)} ${num.slice(5, 8)} ${num.slice(8)}` },
+  PK: { code: '+92', maxDigits: 12, regex: /^92\d{10}$/, format: (num: string) => `+92 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  BD: { code: '+880', maxDigits: 13, regex: /^880\d{10}$/, format: (num: string) => `+880 ${num.slice(3, 5)} ${num.slice(5, 8)} ${num.slice(8)}` },
+  DE: { code: '+49', maxDigits: 13, regex: /^49\d{9,11}$/, format: (num: string) => `+49 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  FR: { code: '+33', maxDigits: 12, regex: /^33\d{9}$/, format: (num: string) => `+33 ${num.slice(2, 4)} ${num.slice(4, 6)} ${num.slice(6, 8)} ${num.slice(8)}` },
+  JP: { code: '+81', maxDigits: 12, regex: /^81\d{9,10}$/, format: (num: string) => `+81 ${num.slice(2, 4)} ${num.slice(4, 7)} ${num.slice(7)}` },
+};
+
+/**
+ * Format phone number based on country code
+ * @param phone - Phone number with country code (digits only)
+ * @param countryCode - Country code (e.g., 'US', 'UK', 'IN')
+ * @returns Formatted phone number
+ */
+export const formatPhoneNumber = (phone: string, countryCode: string): string => {
+  // Remove all non-digits
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  if (!digitsOnly) return '';
+  
+  const format = COUNTRY_PHONE_FORMATS[countryCode as keyof typeof COUNTRY_PHONE_FORMATS];
+  
+  if (!format) return phone;
+  
+  try {
+    return format.format(digitsOnly);
+  } catch (error) {
+    return phone;
+  }
+};
+
+/**
+ * Validate email format
+ * @param email - Email address to validate
+ * @returns Validation result object
+ */
+export const validateEmail = (email: string): { valid: boolean; error?: string } => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  if (!email.trim()) {
+    return { valid: false, error: 'Email is required' };
+  }
+  
+  if (!emailRegex.test(email)) {
+    return { valid: false, error: 'Invalid email format' };
+  }
+  
+  if (email.length > 254) {
+    return { valid: false, error: 'Email is too long (max 254 characters)' };
+  }
+  
+  return { valid: true };
+};
+
+/**
+ * Validate phone number format for a specific country
+ * @param phone - Phone number with country code (digits only)
+ * @param countryCode - Country code (e.g., 'US', 'UK', 'IN')
+ * @returns Validation result object
+ */
+export const validatePhoneNumber = (phone: string, countryCode: string): { valid: boolean; error?: string } => {
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  if (!digitsOnly) {
+    return { valid: false, error: 'Phone number is required' };
+  }
+  
+  const format = COUNTRY_PHONE_FORMATS[countryCode as keyof typeof COUNTRY_PHONE_FORMATS];
+  
+  if (!format) {
+    return { valid: false, error: 'Invalid country code' };
+  }
+  
+  if (digitsOnly.length > format.maxDigits) {
+    return { valid: false, error: `Phone number should not exceed ${format.maxDigits} digits for ${countryCode}` };
+  }
+  
+  if (!format.regex.test(digitsOnly)) {
+    return { valid: false, error: `Invalid phone number format for ${countryCode}. Expected ${format.maxDigits} digits.` };
+  }
+  
+  return { valid: true };
+};
+
 export const isToday = (date: string | Date): boolean => {
   const checkDate = new Date(date);
   const today = new Date();

@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import {
+  formatPhoneNumber,
+  validatePhoneNumber,
+  validateEmail,
+  COUNTRY_PHONE_FORMATS,
+} from "@/lib/utils";
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -11,6 +17,7 @@ interface AddMemberModalProps {
 export interface NewMemberFormState {
   fullName: string;
   email: string;
+  countryCode: string;
   phone: string;
   dateOfBirth: string;
   gender: string;
@@ -27,6 +34,7 @@ export const AddMemberModal = ({
   const [form, setForm] = useState<NewMemberFormState>({
     fullName: "",
     email: "",
+    countryCode: "US",
     phone: "",
     dateOfBirth: "",
     gender: "",
@@ -34,6 +42,9 @@ export const AddMemberModal = ({
     startDate: "",
     sendWelcomeEmail: true,
   });
+
+  const [phoneError, setPhoneError] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
 
   if (!isOpen) return null;
 
@@ -44,6 +55,43 @@ export const AddMemberModal = ({
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error messages when user starts typing
+    if (name === "phone" && phoneError) {
+      setPhoneError("");
+    }
+    if (name === "email" && emailError) {
+      setEmailError("");
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+
+    // Remove all non-digits
+    const digitsOnly = value.replace(/\D/g, "");
+
+    // Get max digits for current country
+    const format =
+      COUNTRY_PHONE_FORMATS[
+        form.countryCode as keyof typeof COUNTRY_PHONE_FORMATS
+      ];
+    const maxDigits = format?.maxDigits || 15;
+
+    // Limit to max digits for the country
+    if (digitsOnly.length > maxDigits) {
+      return; // Don't update if exceeds max digits
+    }
+
+    // Format the phone number based on country code
+    if (digitsOnly) {
+      const formatted = formatPhoneNumber(digitsOnly, form.countryCode);
+      setForm((prev) => ({ ...prev, phone: formatted }));
+    } else {
+      setForm((prev) => ({ ...prev, phone: "" }));
+    }
+
+    setPhoneError("");
   };
 
   const handleToggleWelcome = () => {
@@ -52,6 +100,59 @@ export const AddMemberModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!form.fullName.trim()) {
+      alert("❌ Full Name is required");
+      return;
+    }
+    if (!form.email.trim()) {
+      alert("❌ Email Address is required");
+      return;
+    }
+
+    // Validate email format
+    const emailValidation = validateEmail(form.email);
+    if (!emailValidation.valid) {
+      setEmailError(emailValidation.error || "Invalid email");
+      alert(`❌ ${emailValidation.error}`);
+      return;
+    }
+
+    if (!form.countryCode.trim()) {
+      alert("❌ Country Code is required");
+      return;
+    }
+    if (!form.phone.trim()) {
+      alert("❌ Phone Number is required");
+      return;
+    }
+
+    // Validate phone number format
+    const phoneValidation = validatePhoneNumber(form.phone, form.countryCode);
+    if (!phoneValidation.valid) {
+      setPhoneError(phoneValidation.error || "Invalid phone number");
+      alert(`❌ ${phoneValidation.error}`);
+      return;
+    }
+
+    if (!form.dateOfBirth.trim()) {
+      alert("❌ Date of Birth is required");
+      return;
+    }
+    if (!form.gender.trim()) {
+      alert("❌ Gender is required");
+      return;
+    }
+    if (!form.membershipPlan.trim()) {
+      alert("❌ Membership Plan is required");
+      return;
+    }
+    if (!form.startDate.trim()) {
+      alert("❌ Start Date is required");
+      return;
+    }
+
     onSubmit?.(form);
     onClose();
   };
@@ -120,10 +221,48 @@ export const AddMemberModal = ({
                       name="email"
                       value={form.email}
                       onChange={handleChange}
-                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600"
+                      className={`w-full bg-slate-800/50 border rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all placeholder:text-slate-600 ${
+                        emailError
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-slate-700 focus:ring-primary"
+                      }`}
                       placeholder="alexander@example.com"
                       type="email"
                     />
+                  </div>
+                  {emailError && (
+                    <p className="text-xs text-red-500 mt-1">⚠️ {emailError}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Country Code
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
+                      🌍
+                    </span>
+                    <select
+                      name="countryCode"
+                      value={form.countryCode}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none"
+                    >
+                      <option value="US">🇺🇸 United States (+1)</option>
+                      <option value="UK">🇬🇧 United Kingdom (+44)</option>
+                      <option value="CA">🇨🇦 Canada (+1)</option>
+                      <option value="AU">🇦🇺 Australia (+61)</option>
+                      <option value="IN">🇮🇳 India (+91)</option>
+                      <option value="PK">🇵🇰 Pakistan (+92)</option>
+                      <option value="BD">🇧🇩 Bangladesh (+880)</option>
+                      <option value="DE">🇩🇪 Germany (+49)</option>
+                      <option value="FR">🇫🇷 France (+33)</option>
+                      <option value="JP">🇯🇵 Japan (+81)</option>
+                    </select>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                      ▾
+                    </span>
                   </div>
                 </div>
 
@@ -138,12 +277,28 @@ export const AddMemberModal = ({
                     <input
                       name="phone"
                       value={form.phone}
-                      onChange={handleChange}
-                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600"
-                      placeholder="+1 (555) 000-0000"
+                      onChange={handlePhoneChange}
+                      className={`w-full bg-slate-800/50 border rounded-lg py-3 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all placeholder:text-slate-600 ${
+                        phoneError
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-slate-700 focus:ring-primary"
+                      }`}
+                      placeholder={`e.g. ${COUNTRY_PHONE_FORMATS[form.countryCode as keyof typeof COUNTRY_PHONE_FORMATS]?.code || ""} (555) 000-0000`}
                       type="tel"
                     />
                   </div>
+                  {phoneError && (
+                    <p className="text-xs text-red-500 mt-1">⚠️ {phoneError}</p>
+                  )}
+                  {!phoneError && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      Max{" "}
+                      {COUNTRY_PHONE_FORMATS[
+                        form.countryCode as keyof typeof COUNTRY_PHONE_FORMATS
+                      ]?.maxDigits || 15}{" "}
+                      digits for {form.countryCode}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -297,4 +452,3 @@ export const AddMemberModal = ({
     </div>
   );
 };
-

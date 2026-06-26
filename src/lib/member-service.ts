@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { sendAdmissionWelcomeMessage } from "./whatsapp-service";
 
 export interface Member {
   id: string;
@@ -6,7 +7,7 @@ export interface Member {
   name: string;
   email: string;
   phone: string;
-  membership_type: "basic" | "premium" | "vip";
+  membership_type: "starter" | "pro" | "elite";
   status: "active" | "inactive" | "paused";
   joined_date: string;
   membership_expiry: string;
@@ -18,7 +19,7 @@ export interface CreateMemberData {
   name: string;
   email: string;
   phone: string;
-  membership_type: "basic" | "premium" | "vip";
+  membership_type: "starter" | "pro" | "elite";
 }
 
 /**
@@ -40,7 +41,7 @@ export async function createMember(gymId: string, data: CreateMemberData) {
       email: data.email,
       phone: data.phone,
       membership_type: data.membership_type,
-      status: "active",
+      status: "pending",
       joined_date: joinedDate,
       membership_expiry: membershipExpiry,
     };
@@ -59,6 +60,30 @@ export async function createMember(gymId: string, data: CreateMemberData) {
     }
 
     console.log("[CREATE_MEMBER] Success! Created member:", member);
+
+    // Send WhatsApp welcome message if enabled
+    try {
+      const { data: gym, error: gymError } = await supabase
+        .from("gyms")
+        .select("name, is_whatsapp_enabled")
+        .eq("id", gymId)
+        .single();
+
+      if (gym?.is_whatsapp_enabled && !gymError) {
+        console.log("[CREATE_MEMBER] Sending WhatsApp welcome message...");
+        await sendAdmissionWelcomeMessage(
+          gymId,
+          member.id,
+          data.name,
+          gym.name || "Gym",
+          data.membership_type
+        );
+      }
+    } catch (whatsappError) {
+      // Log WhatsApp error but don't fail member creation
+      console.warn("[CREATE_MEMBER] WhatsApp message failed (non-critical):", whatsappError);
+    }
+
     return { success: true, member };
   } catch (error) {
     console.error("[CREATE_MEMBER] Error:", error);
@@ -142,13 +167,15 @@ export async function updateMember(
  */
 export async function deleteMember(memberId: string) {
   try {
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("members")
-      .delete()
+      .delete({ count: 'exact' })
       .eq("id", memberId);
 
     if (error) throw error;
-
+// If count is 0, it means the ID wasn't found or RLS blocked it
+    console.log(`Deleted ${count} rows`);
+    
     return { success: true };
   } catch (error) {
     console.error("Delete member error:", error);
@@ -195,6 +222,121 @@ export async function getMembersCount(gymId: string) {
     return { success: true, count: count || 0 };
   } catch (error) {
     console.error("Get members count error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Activate a member (change status from pending to active)
+ * Called when first payment is recorded
+ */
+export async function activateMember(memberId: string) {
+  try {
+    const { data: member, error } = await supabase
+      .from("members")
+      .update({ status: "active" })
+      .eq("id", memberId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log("[ACTIVATE_MEMBER] Member activated:", memberId);
+    return { success: true, member };
+  } catch (error) {
+    console.error("Activate member error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Calculate member status based on membership expiry and payment status
+ * Returns: "active", "expiring-soon", or "inactive"
+ */
+export function calculateMemberStatus(
+  currentStatus: string,
+  membershipExpiry: string
+): "active" | "expiring-soon" | "inactive" | "pending" {
+  // If pending or inactive, return as-is
+  if (currentStatus === "pending" || currentStatus === "inactive") {
+    return currentStatus as "pending" | "inactive";
+  }
+
+  const expiryDate = new Date(membershipExpiry);
+  const today = new Date();
+  const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  // If already expired, mark as inactive
+  if (daysUntilExpiry < 0) {
+    return "inactive";
+  }
+
+  // If less than 5 days until expiry, mark as expiring-soon
+  if (daysUntilExpiry < 5) {
+    return "expiring-soon";
+  }
+
+  // Otherwise, active
+  return "active";
+}
+
+/**
+ * Cancel a member's membership and send cancellation notification
+ */
+export async function cancelMembership(
+  gymId: string,
+  memberId: string,
+  reason: string = "Membership cancelled"
+) {
+  try {
+    // Get member details first
+    const { data: member, error: fetchError } = await supabase
+      .from("members")
+      .select("name, phone")
+      .eq("id", memberId)
+      .single();
+
+    if (fetchError || !member) {
+      throw new Error("Member not found");
+    }
+
+    // Update member status to inactive
+    const { error: updateError } = await supabase
+      .from("members")
+      .update({ status: "inactive" })
+      .eq("id", memberId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    // Send WhatsApp cancellation notification if enabled
+    try {
+      const { data: gym, error: gymError } = await supabase
+        .from("gyms")
+        .select("is_whatsapp_enabled")
+        .eq("id", gymId)
+        .single();
+
+      if (gym?.is_whatsapp_enabled && !gymError) {
+        console.log("[CANCEL_MEMBERSHIP] Sending WhatsApp cancellation message...");
+        const { sendMembershipCancellationMessage } = await import("./whatsapp-service");
+        await sendMembershipCancellationMessage(
+          gymId,
+          memberId,
+          member.name,
+          reason
+        );
+      }
+    } catch (whatsappError) {
+      // Log WhatsApp error but don't fail cancellation
+      console.warn("[CANCEL_MEMBERSHIP] WhatsApp message failed (non-critical):", whatsappError);
+    }
+
+    console.log("[CANCEL_MEMBERSHIP] Membership cancelled for member:", memberId);
+    return { success: true };
+  } catch (error) {
+    console.error("Cancel membership error:", error);
     throw error;
   }
 }

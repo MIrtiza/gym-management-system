@@ -1,4 +1,6 @@
 import { supabase } from "./supabase";
+import { activateMember } from "./member-service";
+import { sendFeesPaymentMessage } from "./whatsapp-service";
 
 export interface Payment {
   id: string;
@@ -11,7 +13,7 @@ export interface Payment {
   description: string;
   transaction_id?: string;
   payment_type?: "membership" | "training" | "day_pass" | "other";
-  membership_plan?: "basic" | "premium" | "vip";
+  membership_plan?: "starter" | "pro" | "elite";
   payment_date?: string;
   created_at: string;
   updated_at: string;
@@ -37,7 +39,7 @@ export interface CreatePaymentData {
   payment_method: "credit_card" | "debit_card" | "bank_transfer" | "cash";
   description: string;
   payment_type?: "membership" | "training" | "day_pass" | "other";
-  membership_plan?: "basic" | "premium" | "vip";
+  membership_plan?: "starter" | "pro" | "elite";
   payment_date?: string;
   notes?: string;
 }
@@ -121,6 +123,51 @@ export async function recordPayment(
         payment: null,
         error: error?.message || "Failed to record payment",
       };
+    }
+
+    // If payment was recorded for a member, activate them (change status from pending to active)
+    if (payment && data.member_id) {
+      try {
+        await activateMember(data.member_id);
+        console.log("[RECORD_PAYMENT] Member activated after payment:", data.member_id);
+      } catch (activateError) {
+        console.warn("[RECORD_PAYMENT] Could not activate member after payment:", activateError);
+        // Don't fail the payment recording if activation fails
+      }
+
+      // Send WhatsApp payment confirmation if enabled
+      try {
+        const { data: gym, error: gymError } = await supabase
+          .from("gyms")
+          .select("is_whatsapp_enabled")
+          .eq("id", gymId)
+          .single();
+
+        const { data: member, error: memberError } = await supabase
+          .from("members")
+          .select("name")
+          .eq("id", data.member_id)
+          .single();
+
+        if (
+          gym?.is_whatsapp_enabled &&
+          !gymError &&
+          member &&
+          !memberError
+        ) {
+          console.log("[RECORD_PAYMENT] Sending WhatsApp payment confirmation...");
+          await sendFeesPaymentMessage(
+            gymId,
+            data.member_id,
+            member.name,
+            payment.amount?.toString() || "0",
+            payment.id
+          );
+        }
+      } catch (whatsappError) {
+        // Log WhatsApp error but don't fail payment recording
+        console.warn("[RECORD_PAYMENT] WhatsApp message failed (non-critical):", whatsappError);
+      }
     }
 
     return { success: true, payment, error: null };
@@ -401,6 +448,183 @@ export async function checkMemberMonthlyPayment(
       success: false,
       hasPaidThisMonth: false,
       lastPaymentDate: null,
+    };
+  }
+}
+
+/**
+ * Send fees reminder to a member
+ */
+export async function sendFeesReminder(
+  gymId: string,
+  memberId: string,
+  outstandingAmount: number,
+  dueDate: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data: member, error: memberError } = await supabase
+      .from("members")
+      .select("name")
+      .eq("id", memberId)
+      .single();
+
+    if (memberError || !member) {
+      return { success: false, error: "Member not found" };
+    }
+
+    const { data: gym, error: gymError } = await supabase
+      .from("gyms")
+      .select("is_whatsapp_enabled")
+      .eq("id", gymId)
+      .single();
+
+    if (gymError || !gym?.is_whatsapp_enabled) {
+      return { success: false, error: "WhatsApp not enabled for this gym" };
+    }
+
+    const result = await sendFeesReminderMessage(
+      gymId,
+      memberId,
+      member.name,
+      outstandingAmount.toString(),
+      dueDate
+    );
+
+    return {
+      success: result.success,
+      error: result.error,
+    };
+  } catch (error) {
+    console.error("Send fees reminder error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Send fees overdue warning to a member
+ */
+export async function sendOverdueWarning(
+  gymId: string,
+  memberId: string,
+  overdueAmount: number,
+  daysOverdue: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data: member, error: memberError } = await supabase
+      .from("members")
+      .select("name")
+      .eq("id", memberId)
+      .single();
+
+    if (memberError || !member) {
+      return { success: false, error: "Member not found" };
+    }
+
+    const { data: gym, error: gymError } = await supabase
+      .from("gyms")
+      .select("is_whatsapp_enabled")
+      .eq("id", gymId)
+      .single();
+
+    if (gymError || !gym?.is_whatsapp_enabled) {
+      return { success: false, error: "WhatsApp not enabled for this gym" };
+    }
+
+    const { sendFeesOverdueMessage } = await import("./whatsapp-service");
+    const result = await sendFeesOverdueMessage(
+      gymId,
+      memberId,
+      member.name,
+      overdueAmount.toString(),
+      daysOverdue.toString()
+    );
+
+    return {
+      success: result.success,
+      error: result.error,
+    };
+  } catch (error) {
+    console.error("Send overdue warning error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Send fees reminders to all members who haven't paid this month
+ */
+export async function sendMonthlyFeesReminders(
+  gymId: string,
+  outstandingAmount: number,
+  dueDate: string
+): Promise<{
+  success: boolean;
+  sentCount: number;
+  failedCount: number;
+  error?: string;
+}> {
+  try {
+    // Get all active members
+    const { data: members, error: membersError } = await supabase
+      .from("members")
+      .select("id, name")
+      .eq("gym_id", gymId)
+      .eq("status", "active");
+
+    if (membersError || !members) {
+      return {
+        success: false,
+        sentCount: 0,
+        failedCount: 0,
+        error: "Failed to fetch members",
+      };
+    }
+
+    let sentCount = 0;
+    let failedCount = 0;
+
+    // Check each member and send reminder if they haven't paid
+    for (const member of members) {
+      try {
+        const paymentCheck = await checkMemberMonthlyPayment(member.id, gymId);
+
+        if (!paymentCheck.hasPaidThisMonth) {
+          const result = await sendFeesReminder(
+            gymId,
+            member.id,
+            outstandingAmount,
+            dueDate
+          );
+
+          if (result.success) {
+            sentCount++;
+          } else {
+            failedCount++;
+          }
+        }
+      } catch (error) {
+        console.error(`Error checking payment for member ${member.id}:`, error);
+        failedCount++;
+      }
+    }
+
+    return {
+      success: failedCount === 0,
+      sentCount,
+      failedCount,
+    };
+  } catch (error) {
+    console.error("Send monthly fees reminders error:", error);
+    return {
+      success: false,
+      sentCount: 0,
+      failedCount: 0,
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

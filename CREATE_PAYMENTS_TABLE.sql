@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS payments (
   currency text DEFAULT 'USD',
   payment_method text NOT NULL DEFAULT 'cash' CHECK (payment_method IN ('cash', 'credit_card', 'debit_card', 'bank_transfer')),
   payment_type text NOT NULL DEFAULT 'membership' CHECK (payment_type IN ('membership', 'additional')),
-  membership_plan text DEFAULT NULL CHECK (membership_plan IS NULL OR membership_plan IN ('basic', 'premium', 'vip')),
+  membership_plan text DEFAULT NULL CHECK (membership_plan IS NULL OR membership_plan IN ('starter', 'pro', 'elite')),
   status text NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
   description text,
   transaction_id text,

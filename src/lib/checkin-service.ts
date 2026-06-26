@@ -54,15 +54,27 @@ export async function recordCheckOut(checkinId: string) {
       .eq("id", checkinId)
       .single();
 
+    if (!existingCheckin) throw new Error("Check-in record not found");
+
     const checkOutTime = new Date();
-    const checkInTime = new Date(existingCheckin?.check_in_time);
+    
+    // FIX: Normalize the database string to be treated as UTC
+    const rawInTime = existingCheckin.check_in_time;
+    const utcInString = rawInTime.includes('Z') || rawInTime.includes('+') 
+      ? rawInTime 
+      : `${rawInTime.replace(' ', 'T')}Z`;
+
+    const checkInTime = new Date(utcInString);
+    
+    // Now both checkOutTime and checkInTime are compared as the same global moment
     const durationMinutes = Math.round(
       (checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60)
     );
 
-    console.log("[RECORD_CHECKOUT] CheckOut:", {
+    console.log("[RECORD_CHECKOUT] Debug Log:", {
       checkinId,
-      checkInTime: checkInTime.toISOString(),
+      rawFromDB: rawInTime,
+      parsedUTCInTime: checkInTime.toISOString(),
       checkOutTime: checkOutTime.toISOString(),
       durationMinutes,
     });
@@ -79,7 +91,6 @@ export async function recordCheckOut(checkinId: string) {
 
     if (error) throw error;
 
-    console.log("[RECORD_CHECKOUT] Success:", checkin);
     return { success: true, checkin };
   } catch (error) {
     console.error("Record check-out error:", error);

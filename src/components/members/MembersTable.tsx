@@ -17,6 +17,8 @@ interface MembersTableProps {
   onTabChange?: (tab: "all" | "active" | "inactive" | "expiring") => void;
   stats?: MembersStats;
   allMembersCount?: number;
+  onRefresh?: () => void;
+  isLoading?: boolean;
 }
 
 const getStatusColor = (status: string) => {
@@ -53,6 +55,8 @@ export const MembersTable = ({
   onTabChange,
   stats,
   allMembersCount = 0,
+  onRefresh,
+  isLoading = false,
 }: MembersTableProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
@@ -340,6 +344,14 @@ export const MembersTable = ({
             </div>
 
             <div className="flex">
+              <button
+                onClick={onRefresh}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors disabled:opacity-50"
+              >
+                <span className={isLoading ? "animate-spin" : ""}>🔄</span>
+                Refresh
+              </button>
               <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-[#2d333d] text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#2d333d] transition-colors">
                 <span>🔍</span>
                 Filter
@@ -665,9 +677,9 @@ export const MembersTable = ({
                   }
                   className="w-full px-3 py-2 border border-slate-200 dark:border-[#2d333d] rounded-lg bg-white dark:bg-[#0a0a0a] text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="Basic">Basic</option>
-                  <option value="Premium">Premium</option>
-                  <option value="VIP">VIP</option>
+                  <option value="starter">Starter</option>
+                  <option value="pro">Pro</option>
+                  <option value="elite">Elite</option>
                 </select>
               </div>
 

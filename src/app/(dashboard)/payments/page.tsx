@@ -13,6 +13,7 @@ import {
   downloadPaymentSlip,
   type PaymentSlipData,
 } from "@/lib/slip-generator";
+import { sendPaymentConfirmation } from "@/lib/whatsapp-service";
 import { supabase } from "@/lib/supabase";
 import { RecordPaymentModal } from "@/components/payments/RecordPaymentModal";
 import type { Payment } from "@/lib/payment-service";
@@ -29,6 +30,9 @@ export default function PaymentsPage() {
     average_payment: 0,
   });
   const [loading, setLoading] = useState(false);
+  const [sendingMessagePaymentId, setSendingMessagePaymentId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (gymId) {
@@ -116,6 +120,48 @@ export default function PaymentsPage() {
       `payment-receipt-${member.name.replace(/\s+/g, "-")}-${payment.created_at.split("T")[0]}.pdf`,
     );
     toast.success("Receipt downloaded! 📄");
+  };
+
+  const handleSendPaymentMessage = async (payment: Payment) => {
+    if (!payment.member_id) {
+      toast.error("Payment member information not found");
+      return;
+    }
+
+    const member = members.find((m) => m.id === payment.member_id);
+
+    if (!member) {
+      toast.error("Member information not found");
+      return;
+    }
+
+    if (!gymId) {
+      toast.error("Gym information not found");
+      return;
+    }
+
+    setSendingMessagePaymentId(payment.id);
+
+    try {
+      const result = await sendPaymentConfirmation(
+        gymId,
+        payment.member_id,
+        member.name,
+        payment.amount.toFixed(2),
+        payment.id.slice(0, 8).toUpperCase(),
+      );
+
+      if (result.success) {
+        toast.success("Payment message sent via WhatsApp! 📲");
+      } else {
+        toast.error(result.error || "Failed to send message");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Error sending payment message");
+    } finally {
+      setSendingMessagePaymentId(null);
+    }
   };
 
   const setupRealtimeSubscription = () => {
@@ -398,14 +444,33 @@ export default function PaymentsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleDownloadSlip(payment)}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary transition-colors"
-                          title="Download payment receipt"
-                        >
-                          <span>📄</span>
-                          <span>Slip</span>
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleSendPaymentMessage(payment)}
+                            disabled={sendingMessagePaymentId === payment.id}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            title="Send payment confirmation via WhatsApp"
+                          >
+                            <span>
+                              {sendingMessagePaymentId === payment.id
+                                ? "⏳"
+                                : "💬"}
+                            </span>
+                            <span>
+                              {sendingMessagePaymentId === payment.id
+                                ? "Sending..."
+                                : "Send Msg"}
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleDownloadSlip(payment)}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary transition-colors"
+                            title="Download payment receipt"
+                          >
+                            <span>📄</span>
+                            <span>Slip</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -12,6 +12,7 @@ import {
   downloadPaymentSlip,
   type PaymentSlipData,
 } from "@/lib/slip-generator";
+import { getPlanPrice } from "@/lib/pricing-config";
 
 interface RecordPaymentModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ interface RecordPaymentModalProps {
 
 interface PaymentFormState {
   memberId: string;
-  membershipPlan: "basic" | "premium" | "vip";
+  membershipPlan: "starter" | "pro" | "elite";
   amount: string;
   notes: string;
   paymentDate: string;
@@ -37,7 +38,7 @@ export const RecordPaymentModal = ({
 
   const [form, setForm] = useState<PaymentFormState>({
     memberId: "",
-    membershipPlan: "basic",
+    membershipPlan: "starter",
     amount: "",
     notes: "",
     paymentDate: new Date().toISOString().split("T")[0],
@@ -54,11 +55,11 @@ export const RecordPaymentModal = ({
     lastPaymentDate: string | null;
   } | null>(null);
 
-  // Membership plan prices
+  // Membership plan prices - centralized in pricing-config
   const PLAN_PRICES: Record<string, number> = {
-    basic: 99,
-    premium: 149,
-    vip: 199,
+    starter: getPlanPrice("starter"),
+    pro: getPlanPrice("pro"),
+    elite: getPlanPrice("elite"),
   };
 
   useEffect(() => {
@@ -130,12 +131,18 @@ export const RecordPaymentModal = ({
   };
 
   const handleSelectMember = async (member: Member) => {
+    // Auto-populate the membership plan from the member's plan and update amount
+    const memberPlan = member.membership_type as "starter" | "pro" | "elite";
+    const amount = PLAN_PRICES[memberPlan] || PLAN_PRICES.starter;
+
     setForm((prev) => ({
       ...prev,
       memberId: member.id,
-      amount: PLAN_PRICES[prev.membershipPlan].toString(),
+      membershipPlan: memberPlan,
+      amount: amount.toString(),
     }));
-    setSearchQuery(member.name);
+    // setSearchQuery(member.name);
+    setSearchQuery("");
 
     // Check if member already paid this month
     if (gymId) {
@@ -156,7 +163,7 @@ export const RecordPaymentModal = ({
     }
   };
 
-  const handlePlanChange = (plan: "basic" | "premium" | "vip") => {
+  const handlePlanChange = (plan: "starter" | "pro" | "elite") => {
     setForm((prev) => ({
       ...prev,
       membershipPlan: plan,
@@ -228,7 +235,7 @@ export const RecordPaymentModal = ({
 
         setForm({
           memberId: "",
-          membershipPlan: "basic",
+          membershipPlan: "starter",
           amount: "",
           notes: "",
           paymentDate: new Date().toISOString().split("T")[0],
@@ -284,16 +291,18 @@ export const RecordPaymentModal = ({
                 Select Member
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
-                  <span className="text-[20px]">🔍</span>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 pr-2 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors border-r border-white/10">
+                    <span className="text-[20px]">🔍</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-[#282f39] border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg py-3 pl-15 pr-4 text-white placeholder:text-slate-500 transition-all outline-none"
+                    placeholder="Search by name or email..."
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#282f39] border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg py-3 pl-11 pr-4 text-white placeholder:text-slate-500 transition-all outline-none"
-                  placeholder="Search by name or email..."
-                />
 
                 {/* Member dropdown */}
                 {searchQuery && filteredMembers.length > 0 && (
@@ -385,14 +394,14 @@ export const RecordPaymentModal = ({
                 Membership Plan
               </label>
               <div className="grid grid-cols-3 gap-3">
-                {(["basic", "premium", "vip"] as const).map((plan) => (
+                {(["starter", "pro", "elite"] as const).map((plan) => (
                   <button
                     key={plan}
                     type="button"
                     onClick={() => handlePlanChange(plan)}
                     className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
                       form.membershipPlan === plan
-                        ? "border-primary bg-primary/10 text-white"
+                        ? "border-primary bg-primary/10 text-green-400"
                         : "border-white/5 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"
                     }`}
                   >

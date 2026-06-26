@@ -154,21 +154,24 @@ export default function AttendancePage() {
 
   const formatTime = (dateString: string) => {
     try {
-      // Parse ISO string to ensure proper UTC interpretation
-      const date = new Date(dateString);
+      if (!dateString) return "--:--";
 
-      // Get user's timezone offset
-      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // 1. Check if the string already has a timezone indicator (Z or +/-)
+      // If not, append 'Z' to force it to be treated as UTC from Supabase
+      const utcDateString =
+        dateString.includes("Z") || dateString.includes("+")
+          ? dateString
+          : `${dateString.replace(" ", "T")}Z`;
 
-      // Format using the user's local timezone explicitly
-      const timeString = new Intl.DateTimeFormat("en-US", {
+      const date = new Date(utcDateString);
+
+      // 2. Format using the user's local timezone
+      // In Pakistan, this will automatically add +5 hours to the UTC time
+      return new Intl.DateTimeFormat("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
-        timeZone: userTimezone,
       }).format(date);
-
-      return timeString;
     } catch (error) {
       console.error("Error formatting time:", error);
       return "--:--";
@@ -181,25 +184,29 @@ export default function AttendancePage() {
     checkOutTime?: string,
     now?: Date,
   ) => {
-    // If checked out, use recorded duration
+    // 1. If checked out, use the pre-calculated duration from the database
     if (minutes && minutes > 0) {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
-      if (hours > 0) {
-        return `${hours}h ${mins}m`;
-      }
-      return `${mins}m`;
+      return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
     }
 
-    // If still active, calculate elapsed time using the provided current time
+    // 2. If still active, calculate the duration correctly
     if (checkInTime && !checkOutTime) {
-      const checkIn = new Date(checkInTime);
+      // Fix: Force the check-in string to be treated as UTC
+      const utcCheckInString =
+        checkInTime.includes("Z") || checkInTime.includes("+")
+          ? checkInTime
+          : `${checkInTime.replace(" ", "T")}Z`;
+
+      const checkIn = new Date(utcCheckInString);
       const referenceTime = now || new Date();
+
       const elapsedMinutes = Math.floor(
         (referenceTime.getTime() - checkIn.getTime()) / (1000 * 60),
       );
 
-      if (elapsedMinutes === 0) return "< 1 min";
+      if (elapsedMinutes <= 0) return "< 1 min";
 
       const hours = Math.floor(elapsedMinutes / 60);
       const mins = elapsedMinutes % 60;

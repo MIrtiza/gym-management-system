@@ -8,7 +8,12 @@ import { MembersTable } from "@/components/members/MembersTable";
 import { AddMemberModal } from "@/components/members/AddMemberModal";
 import type { NewMemberFormState } from "@/components/members/AddMemberModal";
 import { useAuth } from "@/lib/auth-context";
-import { getMembers, createMember } from "@/lib/member-service";
+import {
+  getMembers,
+  createMember,
+  calculateMemberStatus,
+} from "@/lib/member-service";
+import { getPlanDisplayPrice, getPlanPrice } from "@/lib/pricing-config";
 import type { Member as SupabaseMember } from "@/lib/member-service";
 
 const ITEMS_PER_PAGE = 10;
@@ -57,31 +62,36 @@ export default function MembersPage() {
       if (result.success) {
         // Map Supabase members to UI format
         const mappedMembers: Member[] = result.members.map(
-          (m: SupabaseMember) => ({
-            id: m.id,
-            name: m.name,
-            email: m.email,
-            memberId: m.id.slice(0, 8).toUpperCase(),
-            avatar: defaultAvatar,
-            membershipPlan:
-              m.membership_type.charAt(0).toUpperCase() +
-              m.membership_type.slice(1),
-            membershipCost: "$0 / month",
-            status:
-              m.status === "active"
-                ? "active"
-                : m.status === "inactive"
-                  ? "inactive"
-                  : "pending",
-            expiryDate: new Date(m.membership_expiry).toLocaleDateString(
-              "en-US",
-              {
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-              },
-            ),
-          }),
+          (m: SupabaseMember) => {
+            // Calculate proper status based on expiry date
+            const calculatedStatus = calculateMemberStatus(
+              m.status,
+              m.membership_expiry,
+            );
+
+            return {
+              id: m.id,
+              name: m.name,
+              email: m.email,
+              memberId: m.id.slice(0, 8).toUpperCase(),
+              avatar: defaultAvatar,
+              membershipPlan:
+                m.membership_type.charAt(0).toUpperCase() +
+                m.membership_type.slice(1),
+              membershipCost: `$${getPlanPrice(
+                m.membership_type as "starter" | "pro" | "elite",
+              )} / month`,
+              status: calculatedStatus,
+              expiryDate: new Date(m.membership_expiry).toLocaleDateString(
+                "en-US",
+                {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                },
+              ),
+            };
+          },
         );
         setAllMembers(mappedMembers);
       }
@@ -133,8 +143,8 @@ export default function MembersPage() {
       const email = formData.email || "";
       const phone = formData.phone || "";
       const membershipType = (
-        formData.membershipPlan || "basic"
-      ).toLowerCase() as "basic" | "premium" | "vip";
+        formData.membershipPlan || "starter"
+      ).toLowerCase() as "starter" | "pro" | "elite";
 
       await createMember(gymId, {
         name,
@@ -200,6 +210,8 @@ export default function MembersPage() {
         onTabChange={setActiveTab}
         stats={stats}
         allMembersCount={allMembers.length}
+        onRefresh={fetchMembers}
+        isLoading={loading}
       />
 
       {/* Pagination */}
