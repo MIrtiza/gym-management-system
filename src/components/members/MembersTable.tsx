@@ -425,6 +425,11 @@ export const MembersTable = ({
                         <p className="text-xs text-slate-500">
                           ID: {member.memberId}
                         </p>
+                        {member.phone && (
+                          <p className="text-xs text-slate-500">
+                            Phone: {member.phone}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </td>

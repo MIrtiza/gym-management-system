@@ -24,10 +24,11 @@ export interface WhatsAppLogEntry {
 
 export interface WhatsAppGymConfig {
   id: string;
-  whatsapp_phone_number_id: string;
-  whatsapp_waba_id: string;
+  // whatsapp_phone_number_id: string;
+  // whatsapp_waba_id: string;
   is_whatsapp_enabled: boolean;
-  whatsapp_access_token: string;
+  gym_display_name: string;
+  // whatsapp_access_token: string;
 }
 
 /**
@@ -60,6 +61,8 @@ export async function sendWhatsAppNotification(
     }
 
     // Call the Edge Function
+    console.log("[WHATSAPP] Sending template payload:", payload);
+
     const response = await fetch(
       `${supabaseUrl}/functions/v1/send-whatsapp-notification`,
       {
@@ -72,13 +75,29 @@ export async function sendWhatsAppNotification(
       }
     );
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data: { success?: boolean; message_id?: string; error?: string; details?: string } = {};
 
-    if (!response.ok) {
-      console.error("WhatsApp API error:", data);
+    if (responseText) {
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        data = { error: responseText };
+      }
+    }
+
+    const hasError = !response.ok || data.success === false || Boolean(data.error);
+    console.log("[WHATSAPP] send response:", response.status, response.statusText, data, { hasError });
+
+    if (hasError) {
+      console.error("WhatsApp API error:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: data,
+      });
       return {
         success: false,
-        error: data.error || "Failed to send message",
+        error: data.error || data.details || `Failed to send message (${response.status} ${response.statusText})`,
       };
     }
 
@@ -142,7 +161,7 @@ export async function sendWelcomeMessage(
   return sendWhatsAppNotification({
     gym_id: gymId,
     member_id: memberId,
-    template_name: "welcome_member",
+    template_name: "irongraph_welcome",
     template_data: [memberName, gymName],
   });
 }
@@ -154,14 +173,15 @@ export async function sendPaymentConfirmation(
   gymId: string,
   memberId: string,
   memberName: string,
-  amount: string,
+  paymentMonth: string,
+  fees: string,
   transactionId: string
 ): Promise<{ success: boolean; message_id?: string; error?: string }> {
   return sendWhatsAppNotification({
     gym_id: gymId,
     member_id: memberId,
-    template_name: "irongraph_fees_paid_confirmation",
-    template_data: [memberName, amount, transactionId],
+    template_name: "irongraph_payment_confirmation ",
+    template_data: [memberName, paymentMonth, fees, transactionId.slice(0, 8)], // Send only first 8 chars of transaction ID for brevity
   });
 }
 
@@ -174,9 +194,7 @@ export async function getGymWhatsAppConfig(
   try {
     const { data, error } = await supabase
       .from("gyms")
-      .select(
-        "id, whatsapp_phone_number_id, whatsapp_waba_id, is_whatsapp_enabled, whatsapp_access_token"
-      )
+      .select("id, is_whatsapp_enabled, gym_display_name")
       .eq("id", gymId)
       .single();
 
@@ -205,10 +223,8 @@ export async function updateGymWhatsAppConfig(
     const { error } = await supabase
       .from("gyms")
       .update({
-        whatsapp_phone_number_id: config.whatsapp_phone_number_id,
-        whatsapp_waba_id: config.whatsapp_waba_id,
-        whatsapp_access_token: config.whatsapp_access_token,
         is_whatsapp_enabled: config.is_whatsapp_enabled,
+        gym_display_name: config.gym_display_name,
       })
       .eq("id", gymId);
 
@@ -341,7 +357,7 @@ export async function sendAdmissionWelcomeMessage(
   return sendWhatsAppNotification({
     gym_id: gymId,
     member_id: memberId,
-    template_name: "admission_welcome",
+    template_name: "irongraph_welcome",
     template_data: [memberName, gymName, membershipType],
   });
 }
@@ -359,7 +375,7 @@ export async function sendFeesReminderMessage(
   return sendWhatsAppNotification({
     gym_id: gymId,
     member_id: memberId,
-    template_name: "fees_reminder",
+    template_name: "irongraph_fees_reminder",
     template_data: [memberName, outstandingAmount, dueDate],
   });
 }
@@ -371,14 +387,15 @@ export async function sendFeesPaymentMessage(
   gymId: string,
   memberId: string,
   memberName: string,
-  paidAmount: string,
+  paymentMonth: string,
+  fees: string,
   transactionId: string
 ): Promise<{ success: boolean; message_id?: string; error?: string }> {
   return sendWhatsAppNotification({
     gym_id: gymId,
     member_id: memberId,
-    template_name: "fees_paid_confirmation",
-    template_data: [memberName, paidAmount, transactionId],
+    template_name: "irongraph_fees_paid_confirmation",
+    template_data: [memberName, paymentMonth, fees, transactionId],
   });
 }
 
@@ -395,7 +412,7 @@ export async function sendFeesOverdueMessage(
   return sendWhatsAppNotification({
     gym_id: gymId,
     member_id: memberId,
-    template_name: "fees_overdue_warning",
+    template_name: "irongraph_fees_overdue_warning",
     template_data: [memberName, overdueAmount, daysOverdue],
   });
 }
@@ -412,7 +429,7 @@ export async function sendMembershipCancellationMessage(
   return sendWhatsAppNotification({
     gym_id: gymId,
     member_id: memberId,
-    template_name: "membership_cancellation",
+    template_name: "irongraph_membership_cancellation",
     template_data: [memberName, cancellationReason],
   });
 }
