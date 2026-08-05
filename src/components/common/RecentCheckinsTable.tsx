@@ -110,7 +110,7 @@ export const RecentCheckinsTable = ({
             {data.map((record, index) => (
               <tr
                 key={record.id}
-                className={`hover:bg-slate-50 dark:hover:bg-background-dark/20 transition-all ${
+                className={`hover:bg-slate-100/30 dark:hover:bg-slate-800/20 transition-all ${
                   index === data.length - 1 ? "border-none" : ""
                 }`}
               >

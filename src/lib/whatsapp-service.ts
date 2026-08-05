@@ -8,6 +8,12 @@ export interface WhatsAppNotificationPayload {
   pdf_url?: string;
 }
 
+export interface BusinessHourSlot {
+  label: string;
+  from: string;
+  to: string;
+}
+
 export interface WhatsAppLogEntry {
   id: string;
   gym_id: string;
@@ -29,6 +35,7 @@ export interface WhatsAppGymConfig {
   is_whatsapp_enabled: boolean;
   gym_display_name: string;
   // whatsapp_access_token: string;
+  business_hours?: string | BusinessHourSlot[];
 }
 
 /**
@@ -194,7 +201,7 @@ export async function getGymWhatsAppConfig(
   try {
     const { data, error } = await supabase
       .from("gyms")
-      .select("id, is_whatsapp_enabled, gym_display_name")
+      .select("id, is_whatsapp_enabled, gym_display_name, business_hours")
       .eq("id", gymId)
       .single();
 
@@ -225,6 +232,7 @@ export async function updateGymWhatsAppConfig(
       .update({
         is_whatsapp_enabled: config.is_whatsapp_enabled,
         gym_display_name: config.gym_display_name,
+        business_hours: config.business_hours,
       })
       .eq("id", gymId);
 

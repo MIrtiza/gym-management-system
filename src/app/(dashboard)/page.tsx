@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -34,7 +35,7 @@ export default function Dashboard() {
     pendingCount: 0,
   });
   const [revenueData, setRevenueData] = useState<
-    { week: string; amount: number }[]
+    { label?: string; amount: number }[]
   >([]);
   const [attendanceData, setAttendanceData] = useState<
     { day: string; count: number }[]
@@ -81,6 +82,8 @@ export default function Dashboard() {
     }
   };
 
+  const router = useRouter();
+
   const loadTrialStatus = async () => {
     if (!gymId) return;
 
@@ -96,10 +99,7 @@ export default function Dashboard() {
   };
 
   const handleUpgradeClick = () => {
-    // This can be extended later to open a pricing/upgrade modal
-    toast.success(
-      "Upgrade feature coming soon! Contact support for more info.",
-    );
+    router.push("/billing");
   };
 
   const handleTrialBannerClose = () => {

@@ -4,8 +4,8 @@ import {
   getGymWhatsAppConfig,
   updateGymWhatsAppConfig,
 } from "@/lib/whatsapp-service";
-import Button from "@/components/common/Button";
-import Card from "@/components/common/Card";
+import { Button } from "@/components/common/Button";
+import { Card } from "@/components/common/Card";
 
 interface WhatsAppSettingsProps {
   gymId: string;

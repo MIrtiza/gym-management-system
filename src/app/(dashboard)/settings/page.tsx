@@ -1,6 +1,426 @@
 "use client";
 
+import { useEffect, useState, type ChangeEvent } from "react";
+import toast from "react-hot-toast";
+import { useAuth } from "@/lib/auth-context";
+import {
+  getGymInfo,
+  getGymInfoByOwnerId,
+  updateGymInfo,
+  type GymData,
+  type StaffMember,
+} from "@/lib/gym-service";
+import { changePassword, updateUserMetadata } from "@/lib/auth-service";
+import {
+  COUNTRY_PHONE_FORMATS,
+  formatPhoneNumber,
+  normalizePhoneDigits,
+  validatePhoneNumber,
+} from "@/lib/utils";
+import WhatsAppSettings from "@/components/settings/WhatsAppSettings";
+
+type PhoneCountryCode = keyof typeof COUNTRY_PHONE_FORMATS;
+
+interface GeneralSettings {
+  gym_name: string;
+  email: string;
+  address: string;
+  phoneCountry: PhoneCountryCode;
+  phone: string;
+}
+
+const initialGeneralSettings: GeneralSettings = {
+  gym_name: "",
+  email: "",
+  address: "",
+  phoneCountry: "US",
+  phone: "",
+};
+
+interface BusinessHourSlot {
+  label: string;
+  from: string;
+  to: string;
+}
+
 export default function SettingsPage() {
+  const { user, refreshAuthUser } = useAuth();
+  const gymId = user?.user_metadata?.gym_id;
+
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(
+    initialGeneralSettings,
+  );
+  const [businessHours, setBusinessHours] = useState<BusinessHourSlot[]>([
+    { label: "Mon - Fri", from: "05:00 AM", to: "11:00 PM" },
+    { label: "Saturday", from: "07:00 AM", to: "09:00 PM" },
+    { label: "Sunday", from: "08:00 AM", to: "06:00 PM" },
+  ]);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [gym, setGym] = useState<GymData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSavingStaff, setIsSavingStaff] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+
+  const businessHoursStorageKey = gymId
+    ? `gym-${gymId}-business-hours`
+    : "gym-business-hours";
+
+  useEffect(() => {
+    if (!businessHoursStorageKey) return;
+
+    const saved = localStorage.getItem(businessHoursStorageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as BusinessHourSlot[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setBusinessHours(parsed);
+        }
+      } catch {
+        // ignore malformed storage
+      }
+    }
+  }, [businessHoursStorageKey]);
+
+  useEffect(() => {
+    if (!businessHoursStorageKey) return;
+    localStorage.setItem(
+      businessHoursStorageKey,
+      JSON.stringify(businessHours),
+    );
+  }, [businessHours, businessHoursStorageKey]);
+
+  useEffect(() => {
+    if (gymId || user?.id) {
+      loadSettings();
+    }
+  }, [gymId, user?.id]);
+
+  const loadSettings = async () => {
+    if (!gymId && !user?.id) return;
+    setIsLoading(true);
+
+    try {
+      let result = gymId ? await getGymInfo(gymId) : null;
+
+      if (!result?.success && user?.id) {
+        result = await getGymInfoByOwnerId(user.id);
+      }
+
+      if (result?.success && result.gym) {
+        const gymData = result.gym;
+        setGym(gymData);
+
+        const normalizedPhone = gymData.phone ?? "";
+        const inferredCountry =
+          (
+            Object.entries(COUNTRY_PHONE_FORMATS) as Array<
+              [
+                PhoneCountryCode,
+                (typeof COUNTRY_PHONE_FORMATS)[PhoneCountryCode],
+              ]
+            >
+          ).find(([_, format]) =>
+            normalizedPhone
+              .replace(/\D/g, "")
+              .startsWith(format.code.replace("+", "")),
+          )?.[0] ?? "US";
+
+        let parsedHours = businessHours;
+        if (gymData.business_hours) {
+          try {
+            const parsed =
+              typeof gymData.business_hours === "string"
+                ? JSON.parse(gymData.business_hours)
+                : gymData.business_hours;
+
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              parsedHours = parsed;
+            }
+          } catch {
+            // ignore invalid JSON and keep current defaults/local values
+          }
+        }
+
+        let parsedStaff: StaffMember[] = [];
+        if (gymData.staff_members) {
+          try {
+            const parsed =
+              typeof gymData.staff_members === "string"
+                ? JSON.parse(gymData.staff_members)
+                : gymData.staff_members;
+
+            if (Array.isArray(parsed)) {
+              parsedStaff = parsed;
+            }
+          } catch {
+            // ignore invalid JSON and keep empty staff list
+          }
+        }
+
+        setGeneralSettings({
+          gym_name: gymData.gym_name ?? "",
+          email: gymData.email ?? "",
+          address: gymData.address ?? "",
+          phoneCountry: inferredCountry,
+          phone: normalizedPhone,
+        });
+        setBusinessHours(parsedHours);
+        setStaffMembers(parsedStaff);
+      } else {
+        console.error("Gym settings load failed:", result?.error);
+        toast.error(result?.error || "Failed to load settings");
+      }
+    } catch (error) {
+      console.error("Error loading gym settings:", error);
+      toast.error("Failed to load settings");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (
+    event: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const { name, value } = event.currentTarget;
+
+    if (name === "phone") {
+      const digitsOnly = value.replace(/\D/g, "");
+      setGeneralSettings((prev) => ({
+        ...prev,
+        [name]: digitsOnly,
+      }));
+      return;
+    }
+
+    setGeneralSettings((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const updateBusinessHour = (
+    index: number,
+    field: keyof BusinessHourSlot,
+    value: string,
+  ) => {
+    setBusinessHours((prev) =>
+      prev.map((slot, slotIndex) =>
+        slotIndex === index ? { ...slot, [field]: value } : slot,
+      ),
+    );
+  };
+
+  const addBusinessHourSlot = () => {
+    setBusinessHours((prev) => [
+      ...prev,
+      { label: "New Slot", from: "09:00 AM", to: "05:00 PM" },
+    ]);
+  };
+
+  const removeBusinessHourSlot = (index: number) => {
+    setBusinessHours((prev) =>
+      prev.filter((_, slotIndex) => slotIndex !== index),
+    );
+  };
+
+  const updateStaffMember = (
+    index: number,
+    field: keyof StaffMember,
+    value: string,
+  ) => {
+    setStaffMembers((prev) =>
+      prev.map((member, memberIndex) =>
+        memberIndex === index ? { ...member, [field]: value } : member,
+      ),
+    );
+  };
+
+  const addStaffMember = () => {
+    const newMember: StaffMember = {
+      id:
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `${Date.now()}`,
+      name: "",
+      role: "Trainer",
+      status: "active",
+      avatar_url: null,
+    };
+
+    setStaffMembers((prev) => [...prev, newMember]);
+  };
+
+  const removeStaffMember = (index: number) => {
+    setStaffMembers((prev) =>
+      prev.filter((_, memberIndex) => memberIndex !== index),
+    );
+  };
+
+  const handleSaveStaffMembers = async () => {
+    if (!gymId) return;
+    setIsSavingStaff(true);
+
+    try {
+      const result = await updateGymInfo(gymId, {
+        staff_members: staffMembers,
+      });
+
+      if (result.success) {
+        toast.success("Staff members updated successfully");
+        await loadSettings();
+      } else {
+        toast.error(result.error || "Failed to save staff members");
+      }
+    } catch (error) {
+      console.error("Error saving staff members:", error);
+      toast.error("Failed to save staff members");
+    } finally {
+      setIsSavingStaff(false);
+    }
+  };
+
+  const handlePasswordInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.currentTarget;
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setPasswordError("");
+    setPasswordSuccess("");
+  };
+
+  const handleSavePassword = async () => {
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (!passwordData.currentPassword) {
+      const errorMessage = "Current password is required";
+      setPasswordError(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
+    if (!passwordData.newPassword) {
+      const errorMessage = "New password is required";
+      setPasswordError(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
+    if (!passwordData.newPassword) {
+      toast.error("New password is required");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 12) {
+      toast.error("New password must be at least 12 characters");
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    setIsSavingPassword(true);
+
+    try {
+      await changePassword(
+        passwordData.currentPassword,
+        passwordData.newPassword,
+      );
+      const successMessage = "Password updated successfully";
+      setPasswordSuccess(successMessage);
+      toast.success(successMessage);
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error: any) {
+      console.error("Error updating password:", error);
+      const message =
+        error?.message || "Failed to update password. Check current password.";
+      setPasswordError(message);
+      toast.error(message);
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
+
+  const handleSaveGeneralSettings = async () => {
+    if (!gymId) return;
+    setIsSaving(true);
+
+    try {
+      const validation = validatePhoneNumber(
+        generalSettings.phone,
+        generalSettings.phoneCountry,
+      );
+
+      if (!validation.valid) {
+        toast.error(validation.error || "Invalid phone number");
+        setIsSaving(false);
+        return;
+      }
+
+      const normalizedResult = normalizePhoneDigits(
+        generalSettings.phone,
+        generalSettings.phoneCountry,
+      );
+
+      if (normalizedResult.error) {
+        toast.error(normalizedResult.error);
+        setIsSaving(false);
+        return;
+      }
+
+      const normalizedNumber = normalizedResult.normalized;
+      const formattedPhone = formatPhoneNumber(
+        normalizedNumber,
+        generalSettings.phoneCountry,
+      );
+
+      const result = await updateGymInfo(gymId, {
+        gym_name: generalSettings.gym_name,
+        email: generalSettings.email,
+        address: generalSettings.address,
+        phone: formattedPhone,
+        business_hours: businessHours,
+      });
+
+      if (result.success) {
+        toast.success("General settings updated successfully");
+
+        if (user && generalSettings.gym_name) {
+          try {
+            await updateUserMetadata({ gym_name: generalSettings.gym_name });
+            await refreshAuthUser();
+          } catch (metadataError) {
+            console.error("Failed to update auth gym name:", metadataError);
+          }
+        }
+
+        await loadSettings();
+      } else {
+        toast.error(result.error || "Failed to save settings");
+      }
+    } catch (error) {
+      console.error("Error saving gym settings:", error);
+      toast.error("Failed to save settings");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-12">
       {/* General Settings */}
@@ -23,8 +443,11 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
-                defaultValue="IronCore Performance Center"
+                name="gym_name"
+                value={generalSettings.gym_name}
+                onChange={handleInputChange}
                 className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                placeholder="IronCore Performance Center"
               />
             </div>
             <div className="space-y-2">
@@ -33,8 +456,12 @@ export default function SettingsPage() {
               </label>
               <input
                 type="email"
-                defaultValue="ops@ironcoregym.com"
+                name="email"
+                value={generalSettings.email}
+                autoComplete=""
+                onChange={handleInputChange}
                 className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                placeholder="ops@ironcoregym.com"
               />
             </div>
             <div className="space-y-2">
@@ -43,46 +470,114 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
-                defaultValue="742 Powerhouse Ave, Suite 100, Austin, TX"
+                name="address"
+                value={generalSettings.address}
+                onChange={handleInputChange}
                 className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                placeholder="742 Powerhouse Ave, Suite 100, Austin, TX"
               />
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
                 Phone Number
               </label>
-              <input
-                type="text"
-                defaultValue="+1 (512) 555-0199"
-                className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
-              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_2fr]">
+                <select
+                  name="phoneCountry"
+                  value={generalSettings.phoneCountry}
+                  onChange={handleInputChange}
+                  className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                >
+                  {(
+                    Object.entries(COUNTRY_PHONE_FORMATS) as Array<
+                      [
+                        PhoneCountryCode,
+                        (typeof COUNTRY_PHONE_FORMATS)[PhoneCountryCode],
+                      ]
+                    >
+                  ).map(([country, config]) => (
+                    <option key={country} value={country}>
+                      {country} ({config.code})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  name="phone"
+                  value={generalSettings.phone}
+                  onChange={handleInputChange}
+                  className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                  placeholder={`${COUNTRY_PHONE_FORMATS[generalSettings.phoneCountry].code} 555 000 0000`}
+                />
+              </div>
             </div>
           </div>
 
           <div className="pt-6 border-t border-slate-800/60">
-            <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-4 block">
-              Business Hours
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-900 rounded-lg p-4 flex flex-col gap-2">
-                <span className="text-xs font-bold">Mon - Fri</span>
-                <span className="text-sm text-primary">
-                  05:00 AM - 11:00 PM
-                </span>
-              </div>
-              <div className="bg-slate-900 rounded-lg p-4 flex flex-col gap-2">
-                <span className="text-xs font-bold">Saturday</span>
-                <span className="text-sm text-primary">
-                  07:00 AM - 09:00 PM
-                </span>
-              </div>
-              <div className="bg-slate-900 rounded-lg p-4 flex flex-col gap-2">
-                <span className="text-xs font-bold">Sunday</span>
-                <span className="text-sm text-primary">
-                  08:00 AM - 06:00 PM
-                </span>
-              </div>
-              <button className="border-2 border-dashed border-slate-700 rounded-lg p-4 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all text-sm font-semibold">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                Business Hours
+              </label>
+              <button
+                type="button"
+                onClick={handleSaveGeneralSettings}
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isSaving || isLoading}
+              >
+                {isSaving ? "Saving..." : "Save General Settings"}
+              </button>
+            </div>
+            <div className="space-y-4">
+              {businessHours.map((slot, index) => (
+                <div
+                  key={index}
+                  className="bg-slate-900 rounded-lg p-4 border border-slate-800/70"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <input
+                      type="text"
+                      value={slot.label}
+                      onChange={(e) =>
+                        updateBusinessHour(index, "label", e.target.value)
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                      placeholder="Slot name"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeBusinessHourSlot(index)}
+                      className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:border-red-500 hover:text-red-400 transition"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+                    <input
+                      type="text"
+                      value={slot.from}
+                      onChange={(e) =>
+                        updateBusinessHour(index, "from", e.target.value)
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                      placeholder="From"
+                    />
+                    <input
+                      type="text"
+                      value={slot.to}
+                      onChange={(e) =>
+                        updateBusinessHour(index, "to", e.target.value)
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                      placeholder="To"
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addBusinessHourSlot}
+                className="w-full rounded-lg border border-dashed border-slate-700 px-4 py-3 text-sm font-semibold text-slate-400 hover:border-primary hover:text-primary transition"
+              >
                 + Add Slot
               </button>
             </div>
@@ -90,80 +585,9 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Membership Configuration */}
-      <section id="membership" className="scroll-mt-24 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-white">
-              Membership Configuration
-            </h2>
-            <p className="text-sm text-slate-400 mt-1">
-              Policies for billing and member lifecycle.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-slate-900/70 rounded-xl p-6 shadow-lg border-l-4 border-primary">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <span>♻️</span>
-              </div>
-              <button
-                type="button"
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary"
-              >
-                <span className="inline-block h-5 w-5 translate-x-5 rounded-full bg-white transition-transform" />
-              </button>
-            </div>
-            <h3 className="font-bold text-lg mb-1">Auto-Renewal</h3>
-            <p className="text-xs text-slate-400">
-              Automatically bill members for the next cycle upon expiration.
-            </p>
-          </div>
-
-          <div className="bg-slate-900/70 rounded-xl p-6 shadow-lg">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-slate-800 rounded-lg text-slate-100">
-                <span>🎫</span>
-              </div>
-              <input
-                type="number"
-                defaultValue={5}
-                className="w-16 bg-slate-800 border-none rounded-lg p-2 text-center text-sm font-bold text-primary focus:ring-0"
-              />
-            </div>
-            <h3 className="font-bold text-lg mb-1">Guest Pass Limit</h3>
-            <p className="text-xs text-slate-400">
-              Maximum number of guest passes issued to premium members per
-              month.
-            </p>
-          </div>
-
-          <div className="bg-slate-900/70 rounded-xl p-6 shadow-lg">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-slate-800 rounded-lg text-slate-100">
-                <span>❄️</span>
-              </div>
-              <button
-                type="button"
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-700"
-              >
-                <span className="inline-block h-5 w-5 translate-x-1 rounded-full bg-white transition-transform" />
-              </button>
-            </div>
-            <h3 className="font-bold text-lg mb-1">Freeze Policy</h3>
-            <p className="text-xs text-slate-400">
-              Allow members to temporarily pause their subscription for medical
-              reasons.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Staff Management */}
       <section id="staff" className="scroll-mt-24 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-extrabold tracking-tight text-white">
               Staff Management
@@ -172,10 +596,24 @@ export default function SettingsPage() {
               Manage roles and permissions for your team.
             </p>
           </div>
-          <button className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all">
-            <span>➕</span>
-            Add Staff Member
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={addStaffMember}
+              className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              <span>➕</span>
+              Add Staff Member
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveStaffMembers}
+              className="inline-flex items-center justify-center rounded-lg bg-slate-700 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isSavingStaff || isLoading}
+            >
+              {isSavingStaff ? "Saving..." : "Save Staff"}
+            </button>
+          </div>
         </div>
 
         <div className="bg-slate-900/70 rounded-xl shadow-lg overflow-hidden border border-slate-800/60">
@@ -197,94 +635,81 @@ export default function SettingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              <tr className="hover:bg-slate-800/80 transition-colors">
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9gkhfHG_oDX_nTJ5cEFYypys66kWEb5YH9jYv0YY9nMy-cO-TRmfJvFo5_azzKf_TYmsatdKTQZdqpGudzCBMqsbsueCtp4HTBGiDLBYKR94Vjkm1lT3DutqUv3wwGliiGqog78YuJx9JTV3V9k-zdLSDvrbWTpYtolJNUW1zxCft-19HVpINWeZoXgrrwWDMH6H5buE0EX6sIKS5qgz1GnEnWKVE6wS3taCN1U6Erphd6DQUmnrRpf9v6XzZHux4RJgiKTkqj6yC"
-                      alt="James Dagger"
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <span className="font-bold text-slate-100">
-                      James Dagger
-                    </span>
-                  </div>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="text-xs px-2.5 py-1 bg-orange-500/10 text-orange-400 rounded-full font-semibold border border-orange-500/20">
-                    Trainer
-                  </span>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
-                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                    Active
-                  </span>
-                </td>
-                <td className="px-8 py-5 text-right">
-                  <button className="text-slate-400 hover:text-white">
-                    ⋮
-                  </button>
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-800/80 transition-colors">
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8Plw3AIqMLjBqXgJt9Fy6zG4MpFqFCum0RfqT224Vup94wRykIVreNMvvmyoOBi2DnvmlpAm3gEXvhTjGq0mTaeTM29CrJVI-EzGqrii_gIsYuBd5uPZfBoYgvoNmN0xhATIeCMaQvUk0boDmcDUnTl1pQPUPe1tjdJE6n0KBVi7jTbngFJgP8oqhKtwfFvK1CLqJGePLZbpCLGa0PWhkA8JO-ecQFjPYObxiUC3LjaD6-qhvfrPEGyO8QSUlnXHRLY6-rIuky1zO"
-                      alt="Sarah Hughes"
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <span className="font-bold text-slate-100">
-                      Sarah Hughes
-                    </span>
-                  </div>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="text-xs px-2.5 py-1 bg-slate-800 text-slate-100 rounded-full font-semibold">
-                    Receptionist
-                  </span>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
-                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                    Active
-                  </span>
-                </td>
-                <td className="px-8 py-5 text-right">
-                  <button className="text-slate-400 hover:text-white">
-                    ⋮
-                  </button>
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-800/80 transition-colors">
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu-3hvuS8WMhPPcLT7cgbplx_Ul5LuacTMBjX_ZIzEJ0DRYNRK3lSnsO3ibH_6DOlFi-NnObGXMszr7I_qAc0mAdGho_iJTCtdvmCEkfFAvzDXFZK7FXmkpP2YgAXWsfx3wn4Wh9l11H0RHn1vdlc_VBPtQkUBHgGGYYtH7CWZGmEBtWEvmXwYvZHKK30Ya9lXP83zOYQAxnTqUQ5ygiIRVEqakThncLdR9JVa3zO7pfhQH8Sn3KFAGX9clw58URhshD_O3vfxpALD"
-                      alt="Robert K."
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <span className="font-bold text-slate-100">Robert K.</span>
-                  </div>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="text-xs px-2.5 py-1 bg-primary/10 text-primary rounded-full font-semibold border border-primary/20">
-                    Admin
-                  </span>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
-                    <span className="w-1.5 h-1.5 bg-slate-500 rounded-full" />
-                    Offline
-                  </span>
-                </td>
-                <td className="px-8 py-5 text-right">
-                  <button className="text-slate-400 hover:text-white">
-                    ⋮
-                  </button>
-                </td>
-              </tr>
+              {staffMembers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-8 py-8 text-center text-slate-400"
+                  >
+                    No staff members have been added yet.
+                  </td>
+                </tr>
+              ) : (
+                staffMembers.map((member, index) => (
+                  <tr
+                    key={member.id}
+                    className="hover:bg-slate-800/80 transition-colors"
+                  >
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
+                          {member.name
+                            ? member.name
+                                .split(" ")
+                                .map((part) => part[0])
+                                .join("")
+                                .toUpperCase()
+                            : "S"}
+                        </div>
+                        <input
+                          type="text"
+                          value={member.name}
+                          onChange={(e) =>
+                            updateStaffMember(index, "name", e.target.value)
+                          }
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                          placeholder="Staff name"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <select
+                        value={member.role}
+                        onChange={(e) =>
+                          updateStaffMember(index, "role", e.target.value)
+                        }
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="Trainer">Trainer</option>
+                        <option value="Receptionist">Receptionist</option>
+                        <option value="Manager">Manager</option>
+                      </select>
+                    </td>
+                    <td className="px-8 py-5">
+                      <select
+                        value={member.status}
+                        onChange={(e) =>
+                          updateStaffMember(index, "status", e.target.value)
+                        }
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="offline">Offline</option>
+                      </select>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => removeStaffMember(index)}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -303,7 +728,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
           <div className="bg-slate-900/70 rounded-xl p-8 shadow-lg border border-slate-800/60">
             <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
               <span className="text-primary">🔒</span>
@@ -316,9 +741,22 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="password"
+                  name="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordInputChange}
                   placeholder="••••••••••••"
                   className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
                 />
+                {passwordError && (
+                  <small className="text-sm text-rose-400 block mt-1">
+                    {passwordError}
+                  </small>
+                )}
+                {passwordSuccess && (
+                  <small className="text-sm text-emerald-400 block mt-1">
+                    {passwordSuccess}
+                  </small>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
@@ -326,47 +764,34 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="password"
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordInputChange}
                   placeholder="Min. 12 characters"
                   className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
                 />
               </div>
-              <button className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold text-sm hover:bg-slate-800 transition-colors">
-                Update Password
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-slate-900/70 rounded-xl p-8 shadow-lg border border-slate-800/60 flex flex-col justify-between">
-            <div>
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <span className="text-primary">🛡️</span>
-                Two-Factor Authentication
-              </h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Add an extra layer of security to your account by requiring a
-                verification code in addition to your password.
-              </p>
-              <div className="mt-8 flex items-center gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10">
-                <div className="p-3 bg-primary/20 rounded-full text-primary">
-                  <span>📱</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold">SMS Authentication</p>
-                  <p className="text-xs text-slate-400">
-                    Recommended for mobile access
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary"
-                >
-                  <span className="inline-block h-5 w-5 translate-x-5 rounded-full bg-white transition-transform" />
-                </button>
+              <div className="space-y-2">
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordInputChange}
+                  placeholder="Repeat new password"
+                  className="w-full bg-slate-900 border-none rounded-lg p-3 text-slate-50 focus:ring-2 focus:ring-primary"
+                />
               </div>
-            </div>
-            <div className="mt-8 text-xs text-slate-500">
-              Last security audit:{" "}
-              <span className="text-slate-300">2 days ago</span>
+              <button
+                type="button"
+                onClick={handleSavePassword}
+                disabled={isSavingPassword}
+                className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold text-sm hover:bg-slate-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isSavingPassword ? "Updating..." : "Update Password"}
+              </button>
             </div>
           </div>
         </div>
@@ -393,4 +818,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

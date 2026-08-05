@@ -51,16 +51,16 @@ export const calculateAge = (dateOfBirth: string): number => {
 
 // Country code to phone format mapping
 export const COUNTRY_PHONE_FORMATS = {
-  US: { code: '+1', maxDigits: 11, regex: /^1\d{10}$/, format: (num: string) => `+1 (${num.slice(1, 4)}) ${num.slice(4, 7)}-${num.slice(7)}` },
-  UK: { code: '+44', maxDigits: 12, regex: /^44\d{10}$/, format: (num: string) => `+44 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
-  CA: { code: '+1', maxDigits: 11, regex: /^1\d{10}$/, format: (num: string) => `+1 (${num.slice(1, 4)}) ${num.slice(4, 7)}-${num.slice(7)}` },
-  AU: { code: '+61', maxDigits: 11, regex: /^61\d{9}$/, format: (num: string) => `+61 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
-  IN: { code: '+91', maxDigits: 12, regex: /^91\d{10}$/, format: (num: string) => `+91 ${num.slice(2, 5)} ${num.slice(5, 8)} ${num.slice(8)}` },
-  PK: { code: '+92', maxDigits: 12, regex: /^92\d{10}$/, format: (num: string) => `+92 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
-  BD: { code: '+880', maxDigits: 13, regex: /^880\d{10}$/, format: (num: string) => `+880 ${num.slice(3, 5)} ${num.slice(5, 8)} ${num.slice(8)}` },
-  DE: { code: '+49', maxDigits: 13, regex: /^49\d{9,11}$/, format: (num: string) => `+49 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
-  FR: { code: '+33', maxDigits: 12, regex: /^33\d{9}$/, format: (num: string) => `+33 ${num.slice(2, 4)} ${num.slice(4, 6)} ${num.slice(6, 8)} ${num.slice(8)}` },
-  JP: { code: '+81', maxDigits: 12, regex: /^81\d{9,10}$/, format: (num: string) => `+81 ${num.slice(2, 4)} ${num.slice(4, 7)} ${num.slice(7)}` },
+  US: { code: '+1', maxDigits: 11, localLength: 10, nationalPrefix: '', regex: /^1\d{10}$/, format: (num: string) => `+1 (${num.slice(1, 4)}) ${num.slice(4, 7)}-${num.slice(7)}` },
+  UK: { code: '+44', maxDigits: 12, localLength: 10, nationalPrefix: '0', regex: /^44\d{10}$/, format: (num: string) => `+44 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  CA: { code: '+1', maxDigits: 11, localLength: 10, nationalPrefix: '', regex: /^1\d{10}$/, format: (num: string) => `+1 (${num.slice(1, 4)}) ${num.slice(4, 7)}-${num.slice(7)}` },
+  AU: { code: '+61', maxDigits: 11, localLength: 9, nationalPrefix: '0', regex: /^61\d{9}$/, format: (num: string) => `+61 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  IN: { code: '+91', maxDigits: 12, localLength: 10, nationalPrefix: '0', regex: /^91\d{10}$/, format: (num: string) => `+91 ${num.slice(2, 5)} ${num.slice(5, 8)} ${num.slice(8)}` },
+  PK: { code: '+92', maxDigits: 12, localLength: 11, nationalPrefix: '0', regex: /^92\d{10}$/, format: (num: string) => `+92 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  BD: { code: '+880', maxDigits: 13, localLength: 10, nationalPrefix: '0', regex: /^880\d{10}$/, format: (num: string) => `+880 ${num.slice(3, 5)} ${num.slice(5, 8)} ${num.slice(8)}` },
+  DE: { code: '+49', maxDigits: 13, localLength: 11, nationalPrefix: '0', regex: /^49\d{9,11}$/, format: (num: string) => `+49 ${num.slice(2, 4)} ${num.slice(4, 8)} ${num.slice(8)}` },
+  FR: { code: '+33', maxDigits: 12, localLength: 9, nationalPrefix: '0', regex: /^33\d{9}$/, format: (num: string) => `+33 ${num.slice(2, 4)} ${num.slice(4, 6)} ${num.slice(6, 8)} ${num.slice(8)}` },
+  JP: { code: '+81', maxDigits: 12, localLength: 10, nationalPrefix: '0', regex: /^81\d{9,10}$/, format: (num: string) => `+81 ${num.slice(2, 4)} ${num.slice(4, 7)} ${num.slice(7)}` },
 };
 
 /**
@@ -69,6 +69,31 @@ export const COUNTRY_PHONE_FORMATS = {
  * @param countryCode - Country code (e.g., 'US', 'UK', 'IN')
  * @returns Formatted phone number
  */
+export const normalizePhoneDigits = (phone: string, countryCode: string): { normalized: string; error?: string } => {
+  const digitsOnly = phone.replace(/\D/g, '');
+  const format = COUNTRY_PHONE_FORMATS[countryCode as keyof typeof COUNTRY_PHONE_FORMATS];
+
+  if (!format) {
+    return { normalized: '', error: 'Invalid country code' };
+  }
+
+  if (format.regex.test(digitsOnly)) {
+    return { normalized: digitsOnly };
+  }
+
+  if (format.nationalPrefix && digitsOnly.startsWith(format.nationalPrefix)) {
+    const normalized = `${format.code.replace('+', '')}${digitsOnly.slice(format.nationalPrefix.length)}`;
+    if (format.regex.test(normalized)) {
+      return { normalized };
+    }
+  }
+
+  return {
+    normalized: '',
+    error: `Invalid phone number format for ${countryCode}. Expected ${format.maxDigits} digits including country code.`,
+  };
+};
+
 export const formatPhoneNumber = (phone: string, countryCode: string): string => {
   // Remove all non-digits
   const digitsOnly = phone.replace(/\D/g, '');
@@ -127,13 +152,14 @@ export const validatePhoneNumber = (phone: string, countryCode: string): { valid
   if (!format) {
     return { valid: false, error: 'Invalid country code' };
   }
-  
-  if (digitsOnly.length > format.maxDigits) {
-    return { valid: false, error: `Phone number should not exceed ${format.maxDigits} digits for ${countryCode}` };
+
+  const normalized = normalizePhoneDigits(phone, countryCode);
+  if (!normalized.normalized) {
+    return { valid: false, error: normalized.error };
   }
   
-  if (!format.regex.test(digitsOnly)) {
-    return { valid: false, error: `Invalid phone number format for ${countryCode}. Expected ${format.maxDigits} digits.` };
+  if (normalized.normalized.length !== format.maxDigits) {
+    return { valid: false, error: `Invalid phone number length for ${countryCode}. Expected ${format.maxDigits} digits including country code.` };
   }
   
   return { valid: true };
