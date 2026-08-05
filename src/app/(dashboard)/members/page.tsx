@@ -73,6 +73,7 @@ export default function MembersPage() {
               id: m.id,
               name: m.name,
               email: m.email,
+              phone: m.phone,
               memberId: m.id.slice(0, 8).toUpperCase(),
               avatar: defaultAvatar,
               membershipPlan:
@@ -127,6 +128,7 @@ export default function MembersPage() {
         (m) =>
           m.name.toLowerCase().includes(query) ||
           m.email.toLowerCase().includes(query) ||
+          m.phone?.toLowerCase().includes(query) ||
           m.memberId.toLowerCase().includes(query),
       );
     }

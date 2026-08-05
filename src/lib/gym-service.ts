@@ -1,5 +1,19 @@
 import { supabase } from "./supabase";
 
+export interface BusinessHourSlot {
+  label: string;
+  from: string;
+  to: string;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: "Trainer" | "Receptionist" | "Manager";
+  status: "active" | "inactive" | "offline";
+  avatar_url?: string | null;
+}
+
 export interface GymData {
   id: string;
   owner_id: string;
@@ -8,6 +22,8 @@ export interface GymData {
   phone: string | null;
   email: string | null;
   subscription_plan: string;
+  business_hours?: string | BusinessHourSlot[] | null;
+  staff_members?: string | StaffMember[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,14 +46,49 @@ export async function getGymInfo(gymId: string) {
       .from("gyms")
       .select("*")
       .eq("id", gymId)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!gym) {
+      return { success: false, error: "Gym not found" };
+    }
 
     return { success: true, gym: gym as GymData };
   } catch (error) {
     console.error("Get gym info error:", error);
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+export async function getGymInfoByOwnerId(ownerId: string) {
+  try {
+    const { data: gym, error } = await supabase
+      .from("gyms")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .maybeSingle();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!gym) {
+      return { success: false, error: "Gym not found" };
+    }
+
+    return { success: true, gym: gym as GymData };
+  } catch (error) {
+    console.error("Get gym info by owner error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
@@ -91,5 +142,37 @@ export async function upgradeGymSubscription(
   } catch (error) {
     console.error("Upgrade gym subscription error:", error);
     throw error;
+  }
+}
+
+/**
+ * Update gym info fields
+ */
+export async function updateGymInfo(
+  gymId: string,
+  updates: Partial<Pick<GymData, "gym_name" | "email" | "address" | "phone" | "business_hours" | "staff_members">>
+): Promise<{ success: boolean; gym?: GymData; error?: string }> {
+  try {
+    const { data: gym, error } = await supabase
+      .from("gyms")
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", gymId)
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, gym: gym as GymData };
+  } catch (error) {
+    console.error("Update gym info error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }

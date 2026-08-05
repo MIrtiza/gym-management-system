@@ -33,10 +33,12 @@ export default function PaymentsPage() {
   const [sendingMessagePaymentId, setSendingMessagePaymentId] = useState<
     string | null
   >(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPayments, setTotalPayments] = useState(0);
+  const pageSize = 10;
 
   useEffect(() => {
     if (gymId) {
-      fetchPayments();
       fetchStats();
       fetchMembers();
       const unsubscribe = setupRealtimeSubscription();
@@ -49,14 +51,21 @@ export default function PaymentsPage() {
     }
   }, [gymId]);
 
-  const fetchPayments = async () => {
+  useEffect(() => {
+    if (gymId) {
+      fetchPayments(currentPage);
+    }
+  }, [gymId, currentPage]);
+
+  const fetchPayments = async (page: number = 1) => {
     if (!gymId) return;
 
     setLoading(true);
     try {
-      const result = await getPayments(gymId, 10);
+      const result = await getPayments(gymId, page, pageSize);
       if (result.success) {
         setPayments(result.payments);
+        setTotalPayments(result.count ?? 0);
       }
     } catch (error) {
       console.error("Error fetching payments:", error);
@@ -147,8 +156,9 @@ export default function PaymentsPage() {
         gymId,
         payment.member_id,
         member.name,
-        payment.amount.toFixed(2),
-        payment.id.slice(0, 8).toUpperCase(),
+        formatMonth(payment.payment_date || payment.created_at),
+        payment.amount.toString(),
+        payment.transaction_id ?? payment.id,
       );
 
       if (result.success) {
@@ -355,7 +365,7 @@ export default function PaymentsPage() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={fetchPayments}
+                onClick={() => fetchPayments(currentPage)}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               >
                 <span>🔄</span>
@@ -480,10 +490,39 @@ export default function PaymentsPage() {
           </div>
 
           {/* Pagination */}
-          <div className="p-6 border-t border-slate-200 dark:border-slate-800/50 flex items-center justify-between">
+          <div className="p-6 border-t border-slate-200 dark:border-slate-800/50 flex flex-col md:flex-row items-center justify-between gap-3">
             <span className="text-sm text-slate-500">
-              Showing {payments.length} of {stats.total_payments} payments
+              Showing {payments.length} of {totalPayments} payments
             </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1 || loading}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                ◀ Previous
+              </button>
+              <span className="text-sm text-slate-500">
+                Page {currentPage} of{" "}
+                {Math.max(1, Math.ceil(totalPayments / pageSize))}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(
+                      prev + 1,
+                      Math.max(1, Math.ceil(totalPayments / pageSize)),
+                    ),
+                  )
+                }
+                disabled={
+                  currentPage >= Math.ceil(totalPayments / pageSize) || loading
+                }
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next ▶
+              </button>
+            </div>
           </div>
         </div>
       </div>

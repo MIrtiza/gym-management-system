@@ -10,7 +10,7 @@ import {
 } from "@/lib/payment-service";
 
 type BillingCycle = "monthly" | "annual";
-type Plan = "basic" | "premium" | "elite";
+type Plan = "basic" | "premium";
 type PaymentMethod = "credit_card" | "debit_card" | "bank_transfer";
 
 const PLAN_FEATURES = {
@@ -26,14 +26,6 @@ const PLAN_FEATURES = {
     "Priority Support",
     "Unlimited Members",
     "Check-in System",
-  ],
-  elite: [
-    "Everything in Premium",
-    "Custom Reports",
-    "24/7 Phone Support",
-    "API Access",
-    "Multi-Location",
-    "White Label Options",
   ],
 };
 
@@ -68,8 +60,7 @@ export default function BillingPage() {
       if (
         result.subscription &&
         (result.subscription.plan === "basic" ||
-          result.subscription.plan === "premium" ||
-          result.subscription.plan === "elite")
+          result.subscription.plan === "premium")
       ) {
         setCurrentSubscription(result.subscription);
         setSelectedPlan(result.subscription.plan);
@@ -126,7 +117,6 @@ export default function BillingPage() {
   const planNames: Record<Plan, string> = {
     basic: "Titan Basic",
     premium: "Titan Premium",
-    elite: "Titan Elite",
   };
 
   const formatCardNumber = (value: string) => {
@@ -266,8 +256,8 @@ export default function BillingPage() {
               Select Your Plan
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {(["basic", "premium", "elite"] as const).map((plan) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(["basic", "premium"] as const).map((plan) => (
                 <div
                   key={plan}
                   onClick={() => setSelectedPlan(plan)}

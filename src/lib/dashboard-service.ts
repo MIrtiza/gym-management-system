@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 
 /**
- * Get monthly revenue data
+ * Get weekly revenue data for the last 4 weeks
  */
 export async function getMonthlyRevenue(gymId: string) {
   try {
@@ -17,7 +17,6 @@ export async function getMonthlyRevenue(gymId: string) {
 
     if (error) throw error;
 
-    // Group by week
     const weeks: Record<string, number> = {
       "Week 1": 0,
       "Week 2": 0,
@@ -27,7 +26,7 @@ export async function getMonthlyRevenue(gymId: string) {
 
     payments?.forEach((payment) => {
       const date = new Date(payment.created_at);
-      const weekOfMonth = Math.ceil(date.getDate() / 7);
+      const weekOfMonth = Math.min(4, Math.max(1, Math.ceil(date.getDate() / 7)));
       const weekLabel = `Week ${weekOfMonth}`;
       weeks[weekLabel] = (weeks[weekLabel] || 0) + payment.amount;
     });

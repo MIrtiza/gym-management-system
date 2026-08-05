@@ -9,16 +9,6 @@ interface SendWhatsAppRequest {
   pdf_url?: string;
 }
 
-interface WhatsAppTemplate {
-  name: string;
-  language_code: string;
-  components?: Array<{
-    type: string;
-    parameters?: Array<{ type: string; text?: string; image?: { link: string } }>;
-  }>;
-}
-
-// CORS headers for all responses
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -26,69 +16,60 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response("ok", {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
   try {
-    // Security: Only allow POST requests from app service role
     if (req.method !== "POST") {
-      return new Response("Method not allowed", {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response("Method not allowed", { status: 405, headers: corsHeaders });
     }
 
-    // Verify authorization header
     const authHeader = req.headers.get("Authorization");
     const expectedToken = Deno.env.get("WHATSAPP_SERVICE_TOKEN");
 
     if (!authHeader?.startsWith("Bearer ") || authHeader.slice(7) !== expectedToken) {
-      return new Response("Unauthorized", {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response("Unauthorized", { status: 401, headers: corsHeaders });
     }
 
     const payload: SendWhatsAppRequest = await req.json();
 
-    // Validate required fields
     if (!payload.gym_id || !payload.member_id || !payload.template_name) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Initialize Supabase client with service role
+    // Force strict fallback if Deno env fails to parse on Windows shell environment
+    const masterPhoneNumberId = Deno.env.get("META_PHONE_NUMBER_ID") || "1103321039530877";
+    const masterAccessToken = Deno.env.get("META_ACCESS_TOKEN");
+
+    if (!masterPhoneNumberId || !masterAccessToken) {
+      throw new Error("Platform master Meta credentials are not configured.");
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error("Missing Supabase configuration");
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // 1. Fetch gym WhatsApp credentials
     const { data: gym, error: gymError } = await supabase
       .from("gyms")
-      .select("whatsapp_phone_number_id, whatsapp_waba_id, whatsapp_access_token, is_whatsapp_enabled")
+      .select("is_whatsapp_enabled")
       .eq("id", payload.gym_id)
       .single();
 
-    if (gymError || !gym || !gym.is_whatsapp_enabled) {
-      throw new Error("WhatsApp not configured or enabled for this gym");
+    if (gymError || !gym) {
+      throw new Error("Gym profile not found");
     }
 
-    // 2. Fetch member phone number
+    if (!gym.is_whatsapp_enabled) {
+      return new Response(JSON.stringify({ success: false, message: "WhatsApp notifications disabled" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: member, error: memberError } = await supabase
       .from("members")
       .select("phone")
@@ -96,37 +77,42 @@ serve(async (req: Request) => {
       .single();
 
     if (memberError || !member?.phone) {
-      throw new Error("Member not found or missing phone number");
+      throw new Error("Member not found or missing phone information");
     }
 
-    // 3. Format phone number to E.164 format
     const formattedPhone = formatPhoneToE164(member.phone);
+    const whatsappApiEndpoint = `https://graph.facebook.com/v25.0/${masterPhoneNumberId}/messages`;
 
-    // 4. Build WhatsApp API request
-    const whatsappApiEndpoint = `https://graph.instagram.com/v19.0/${gym.whatsapp_phone_number_id}/messages`;
+    // Dynamic language router: hello_world and fees confirmation use en_US
+    const finalLanguageCode = "en_US"; // Default to English for now, can be extended to fetch from gym settings
+
+    console.log("[WHATSAPP FUNC] finalLanguageCode:", finalLanguageCode);
 
     const messagePayload = buildMessagePayload(
       formattedPhone,
       payload.template_name,
       payload.template_data,
+      finalLanguageCode,
       payload.pdf_url
     );
 
-    // 5. Send to Meta WhatsApp Cloud API
+    console.log("[WHATSAPP FUNC] messagePayload:", JSON.stringify(messagePayload, null, 2));
+
     const metaResponse = await fetch(whatsappApiEndpoint, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${gym.whatsapp_access_token}`,
+        "Authorization": `Bearer ${masterAccessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(messagePayload),
     });
 
     const metaResponseData = await metaResponse.json();
+    console.log("[WHATSAPP FUNC] metaResponse status:", metaResponse.status, metaResponse.statusText);
+    console.log("[WHATSAPP FUNC] metaResponseData:", JSON.stringify(metaResponseData, null, 2));
 
-    // 6. Log the result
     if (metaResponse.ok && metaResponseData.messages?.[0]) {
-      const { error: logError } = await supabase.from("whatsapp_logs").insert({
+      await supabase.from("whatsapp_logs").insert({
         gym_id: payload.gym_id,
         member_id: payload.member_id,
         status: "sent",
@@ -136,25 +122,13 @@ serve(async (req: Request) => {
         template_data: payload.template_data,
       });
 
-      if (logError) {
-        console.error("Error logging WhatsApp message:", logError);
-      }
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message_id: metaResponseData.messages[0].id,
-          timestamp: new Date().toISOString(),
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ success: true, message_id: metaResponseData.messages[0].id }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     } else {
-      // Log failure
-      const errorMessage = metaResponseData.error?.message || "Unknown error from Meta API";
-
+      const errorMessage = metaResponseData.error?.message || "Meta API Error";
+      
       await supabase.from("whatsapp_logs").insert({
         gym_id: payload.gym_id,
         member_id: payload.member_id,
@@ -166,62 +140,35 @@ serve(async (req: Request) => {
         retry_count: 0,
       });
 
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: errorMessage,
-          timestamp: new Date().toISOString(),
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ success: false, error: errorMessage }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
   } catch (error) {
-    console.error("WhatsApp notification error:", error);
-
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : String(error),
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: String(error) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
 
-/**
- * Format phone number to E.164 standard (e.g., +923001234567 for Pakistan)
- */
 function formatPhoneToE164(phone: string): string {
-  // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, "");
-
-  // If it starts with 0 (local format), replace with country code 92 for Pakistan
+  let cleaned = phone.replace(/\D/g, "");
   if (cleaned.startsWith("0")) {
-    return `+92${cleaned.slice(1)}`;
+    cleaned = `92${cleaned.slice(1)}`;
   }
-
-  // If it doesn't start with +, assume it's a local number and add +92
-  if (!cleaned.startsWith("92")) {
-    return `+92${cleaned}`;
+  if (cleaned.startsWith("0092")) {
+    cleaned = cleaned.slice(2);
   }
-
-  // Otherwise, add + if not present
-  return `+${cleaned}`;
+  return cleaned;
 }
 
-/**
- * Build message payload for Meta WhatsApp Cloud API
- */
 function buildMessagePayload(
   recipientPhone: string,
   templateName: string,
   templateData: string[],
+  languageCode: string,
   pdfUrl?: string
 ): Record<string, unknown> {
   const basePayload = {
@@ -230,50 +177,40 @@ function buildMessagePayload(
     to: recipientPhone,
   };
 
-  // If PDF URL is provided, use document template
   if (pdfUrl) {
     return {
       ...basePayload,
       type: "document",
-      document: {
-        link: pdfUrl,
-        filename: `payment_slip_${Date.now()}.pdf`,
-      },
+      document: { link: pdfUrl, filename: `receipt_${Date.now()}.pdf` },
     };
   }
 
-  // Otherwise, use template-based message
-  return {
+  const payload: Record<string, unknown> = {
     ...basePayload,
     type: "template",
     template: {
       name: templateName,
-      language: {
-        code: "en",
-      },
-      components: [
-        {
-          type: "body",
-          parameters: templateData.map((text) => ({
-            type: "text",
-            text: text,
-          })),
-        },
-      ],
+      language: { code: languageCode },
     },
   };
+
+  // Only append components if array has items (prevents breaking hello_world)
+  if (templateData && templateData.length > 0) {
+    payload.template.components = [
+      {
+        type: "body",
+        parameters: templateData.map((text) => ({
+          type: "text",
+          text: String(text),
+        })),
+      },
+    ];
+  }
+
+  return payload;
 }
 
-/**
- * Extract message type from template name
- */
 function extractMessageType(templateName: string): string {
   if (templateName.includes("receipt") || templateName.includes("fees_paid")) return "receipt";
-  if (templateName.includes("reminder") || templateName.includes("fees_reminder")) return "reminder";
-  if (templateName.includes("welcome") || templateName.includes("admission")) return "welcome";
-  if (templateName.includes("expiry")) return "expiry_warning";
-  if (templateName.includes("overdue")) return "fees_overdue";
-  if (templateName.includes("cancellation")) return "cancellation";
-  if (templateName.includes("maintenance")) return "maintenance";
   return "reminder";
 }

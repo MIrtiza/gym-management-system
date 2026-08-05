@@ -73,7 +73,7 @@ export const AttendanceChart = ({
           </div>
         </div>
       </div>
-      <div className="h-64 relative">
+      <div className=" relative h-auto">
         {data.length === 0 ? (
           <div className="flex items-center justify-center h-full text-slate-500 text-sm">
             No attendance data available
@@ -114,7 +114,7 @@ export const AttendanceChart = ({
                 </>
               )}
             </svg>
-            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2 pt-4">
+            <div className="relative bottom-0 left-0 right-0 flex justify-between px-2 py-4">
               {points.map((point, index) => (
                 <span
                   key={index}

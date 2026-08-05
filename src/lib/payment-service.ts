@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 import { activateMember } from "./member-service";
-import { sendFeesPaymentMessage } from "./whatsapp-service";
+import { sendFeesPaymentMessage, sendFeesReminderMessage } from "./whatsapp-service";
 
 export interface Payment {
   id: string;
@@ -55,6 +55,17 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlans = {
   premium: { monthly: 149, annual: 1490 },
   elite: { monthly: 199, annual: 1990 },
 };
+
+function formatPaymentMonth(dateString?: string): string {
+  const date = dateString
+    ? new Date(dateString.includes("T") ? dateString : `${dateString}T00:00:00`)
+    : new Date();
+
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
 
 /**
  * Record a payment for the gym or a member
@@ -160,8 +171,9 @@ export async function recordPayment(
             gymId,
             data.member_id,
             member.name,
-            payment.amount?.toString() || "0",
-            payment.id
+            formatPaymentMonth(payment.payment_date || payment.created_at),
+            payment.amount.toString(),
+            payment.transaction_id ?? payment.id,
           );
         }
       } catch (whatsappError) {
@@ -185,18 +197,25 @@ export async function recordPayment(
 /**
  * Get all payments for a gym
  */
-export async function getPayments(gymId: string, limit: number = 50) {
+export async function getPayments(gymId: string, page = 1, pageSize: number = 50) {
   try {
-    const { data: payments, error } = await supabase
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data: payments, count, error } = await supabase
       .from("payments")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("gym_id", gymId)
       .order("created_at", { ascending: false })
-      .limit(limit);
+      .range(from, to);
 
     if (error) throw error;
 
-    return { success: true, payments: payments as Payment[] };
+    return {
+      success: true,
+      payments: payments as Payment[],
+      count: count ?? (payments?.length || 0),
+    };
   } catch (error) {
     console.error("Get payments error:", error);
     throw error;

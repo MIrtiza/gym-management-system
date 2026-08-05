@@ -109,6 +109,64 @@ export async function resetPassword(newPassword: string) {
 }
 
 /**
+ * Update authenticated user's metadata
+ */
+export async function updateUserMetadata(metadata: Record<string, unknown>) {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      data: metadata,
+    });
+
+    if (error) throw error;
+
+    return { success: true, user: data.user };
+  } catch (error) {
+    console.error("Update user metadata error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Change password with current password verification
+ */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+) {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw userError;
+    if (!user?.email) {
+      throw new Error("Unable to verify current user email.");
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      throw signInError;
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) throw error;
+
+    return { success: true, user: data.user };
+  } catch (error) {
+    console.error("Change password error:", error);
+    throw error;
+  }
+}
+
+/**
  * Sign out user
  */
 export async function signoutUser() {

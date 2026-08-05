@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signout: () => Promise<void>;
+  refreshAuthUser: () => Promise<void>;
   gymName?: string;
 }
 
@@ -50,6 +51,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const refreshAuthUser = async () => {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        throw error;
+      }
+
+      setSession(session);
+      setUser(session?.user ?? null);
+      setGymName(session?.user?.user_metadata?.gym_name);
+    } catch (error) {
+      console.error("Failed to refresh auth user:", error);
+    }
+  };
+
   const signout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -58,7 +78,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signout, gymName }}>
+    <AuthContext.Provider
+      value={{ user, session, loading, signout, refreshAuthUser, gymName }}
+    >
       {children}
     </AuthContext.Provider>
   );

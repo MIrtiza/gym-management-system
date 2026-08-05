@@ -1,7 +1,9 @@
 "use client";
 
 interface RevenueData {
-  week: string;
+  day?: string;
+  week?: string;
+  label?: string;
   amount: number;
 }
 
@@ -13,70 +15,82 @@ interface RevenueChartProps {
 }
 
 export const RevenueChart = ({
-  title = "Monthly Revenue",
-  subtitle = "total this month",
+  title = "Weekly Revenue Trends",
+  subtitle = "Weekly revenue performance over the last 4 weeks",
   data = [],
   isLoading = false,
 }: RevenueChartProps) => {
-  // Calculate total and max for normalization
   const totalRevenue = data.reduce((sum, item) => sum + (item.amount || 0), 0);
   const maxAmount = Math.max(...data.map((d) => d.amount || 0), 1);
   const displayValue = `$${totalRevenue.toLocaleString()}`;
 
-  // Normalize amounts to percentages for bar chart
-  const normalizedData = data.map((item) => ({
-    label: item.week?.slice(0, 3).toUpperCase() || "--",
-    percentage: (item.amount / maxAmount) * 100,
+  const normalizedData = data.map((item, index) => ({
+    label: item.label
+      ? item.label.toUpperCase()
+      : item.day
+        ? item.day.toUpperCase()
+        : item.week
+          ? item.week.slice(0, 3).toUpperCase()
+          : "--",
     amount: item.amount,
+    percentage: (item.amount / maxAmount) * 100,
+    x: index,
   }));
+
+  const latestIndex = Math.max(normalizedData.length - 1, 0);
+  const hasData = normalizedData.length > 0;
+
   return (
-    <div className="bg-white dark:bg-[#1a1d23] p-6 rounded-2xl border border-slate-200 dark:border-[#2d333d] shadow-sm">
-      <div className="flex items-center justify-between mb-8">
+    <div className="bg-[#1a1d23] p-8 rounded-3xl border border-slate-800 shadow-xl flex flex-col">
+      <div className="flex justify-between items-center mb-5">
         <div>
-          <h3 className="font-bold text-lg">{title}</h3>
-          <p className="text-2xl font-800 text-primary mt-1">
-            {isLoading ? (
-              <span className="animate-pulse">Loading...</span>
-            ) : (
-              displayValue
-            )}{" "}
-            <span className="text-xs font-medium text-slate-500 ml-1">
-              {subtitle}
-            </span>
-          </p>
+          <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span className="w-1 h-4 bg-[#0d6cf2] rounded-full" />
+            {title}
+          </h4>
+          <p className="text-sm text-slate-400 mt-2">{subtitle}</p>
         </div>
-        <button className="text-slate-400 hover:text-primary transition-colors">
-          ⋮
-        </button>
+        <div className="flex gap-2">
+          <div className="w-3 h-3 rounded-full bg-[#0d6cf2]/40" />
+          <div className="w-3 h-3 rounded-full bg-[#0d6cf2]" />
+        </div>
       </div>
-      <div className="h-64 flex items-end justify-between gap-3 px-2">
+
+      <div className="mb-4 px-2 flex items-center justify-between text-[11px] text-slate-500">
+        <span className="text-3xl">Total</span>
+        <span className="font-bold text-3xl text-white ">{displayValue}</span>
+      </div>
+
+      <div className="flex-1 flex items-end justify-between gap-6 px-4 pb-4">
         {isLoading ? (
-          <div className="w-full flex items-end justify-between gap-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-lg h-32 animate-pulse" />
-                <span className="text-[10px] font-bold text-slate-500">--</span>
-              </div>
-            ))}
+          <div className="h-full w-full flex items-center justify-center text-slate-500 text-sm">
+            Loading chart...
           </div>
-        ) : normalizedData.length === 0 ? (
-          <div className="w-full flex items-center justify-center text-slate-500 text-sm">
+        ) : !hasData ? (
+          <div className="h-full w-full flex items-center justify-center text-slate-500 text-sm">
             No revenue data available
           </div>
         ) : (
           normalizedData.map((item, index) => (
             <div
               key={index}
-              className="w-full flex flex-col items-center gap-2 group cursor-pointer"
-              title={`$${item.amount.toLocaleString()}`}
+              className="flex flex-col items-center flex-1 group h-full justify-end"
             >
-              <div className="w-full bg-slate-100 dark:bg-[#0a0a0a] rounded-lg overflow-hidden flex flex-col justify-end h-full">
-                <div
-                  className="bg-primary/40 group-hover:bg-primary transition-all rounded-t-lg"
-                  style={{ height: `${Math.max(item.percentage, 10)}%` }}
-                />
+              <div
+                className={`w-full rounded-t-lg transition-all duration-300 relative ${
+                  index === latestIndex
+                    ? "bg-[#0d6cf2] shadow-lg shadow-[#0d6cf2]/20"
+                    : "bg-[#0d6cf2]/20 group-hover:bg-[#0d6cf2]/40"
+                }`}
+                style={{ height: `${Math.max(item.percentage, 8)}%` }}
+              >
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900/95 text-xs text-white px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                  ${item.amount.toLocaleString()}
+                </div>
               </div>
-              <span className="text-[10px] font-bold text-slate-500">
+              <span
+                className={`text-[10px] font-bold uppercase mt-4 ${index === latestIndex ? "text-white" : "text-slate-500"}`}
+              >
                 {item.label}
               </span>
             </div>
