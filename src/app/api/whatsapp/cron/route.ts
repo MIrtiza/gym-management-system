@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      action,
       ...result,
+      requested_action: action,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

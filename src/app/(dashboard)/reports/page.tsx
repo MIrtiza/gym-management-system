@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
-
-interface ReportRow {
-  date: string;
-  revenue: number;
-  newMembers: number;
-  checkins: number;
-  attendanceRate: number;
-}
+import { useAuth } from "@/lib/auth-context";
+import {
+  getReportData,
+  type ReportRow,
+  type ReportSummary,
+} from "@/lib/report-service";
 
 const toISODate = (date: Date) => date.toISOString().slice(0, 10);
 
@@ -19,56 +18,28 @@ const addDays = (date: Date, days: number) => {
   return copy;
 };
 
-const buildReportRows = (start: string, end: string): ReportRow[] => {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return [];
-  }
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
-  const rows: ReportRow[] = [];
-  let i = 0;
-  for (
-    let d = new Date(startDate.getTime());
-    d <= endDate;
-    d = addDays(d, 1), i++
-  ) {
-    const dayOfWeek = d.getDay(); // 0-6
-    const baseRevenue = 1200 + (i % 10) * 50;
-    const weekendBoost = dayOfWeek === 0 || dayOfWeek === 6 ? 1.25 : 1;
-    const revenue = Math.round(baseRevenue * weekendBoost);
-
-    const baseNewMembers = 2 + (i % 3);
-    const newMembers =
-      dayOfWeek === 5 || dayOfWeek === 6 ? baseNewMembers + 3 : baseNewMembers;
-
-    const baseCheckins = 80 + (i % 15) * 3;
-    const checkins = dayOfWeek === 1 ? baseCheckins + 40 : baseCheckins;
-
-    const attendanceRate =
-      60 + ((checkins / 160) * 40 + (dayOfWeek === 1 ? 5 : 0));
-
-    rows.push({
-      date: toISODate(d),
-      revenue,
-      newMembers,
-      checkins,
-      attendanceRate: Number(attendanceRate.toFixed(1)),
-    });
-  }
-
-  return rows;
+const emptySummary: ReportSummary = {
+  totalRevenue: 0,
+  newMembers: 0,
+  activeMemberships: 0,
+  totalCheckins: 0,
+  averageAttendanceRate: 0,
 };
 
 const exportReportToExcel = (rows: ReportRow[], start: string, end: string) => {
   if (!rows.length) return;
 
-  const exportRows = rows.map((r) => ({
-    Date: r.date,
-    Revenue: r.revenue,
-    "New Members": r.newMembers,
-    "Total Check-ins": r.checkins,
-    "Attendance Rate (%)": r.attendanceRate,
+  const exportRows = rows.map((row) => ({
+    Date: row.date,
+    Revenue: row.revenue,
+    "New Members": row.newMembers,
+    "Total Check-ins": row.checkins,
+    "Attendance Rate (%)": row.attendanceRate,
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(exportRows);
@@ -91,12 +62,53 @@ const exportReportToExcel = (rows: ReportRow[], start: string, end: string) => {
 };
 
 export default function ReportsPage() {
+  const { user, gymName } = useAuth();
+  const gymId = user?.user_metadata?.gym_id;
+
   const today = new Date();
   const defaultEnd = toISODate(today);
   const defaultStart = toISODate(addDays(today, -29));
 
   const [startDate, setStartDate] = useState<string>(defaultStart);
   const [endDate, setEndDate] = useState<string>(defaultEnd);
+  const [rows, setRows] = useState<ReportRow[]>([]);
+  const [summary, setSummary] = useState<ReportSummary>(emptySummary);
+  const [loading, setLoading] = useState(false);
+
+  const loadReport = useCallback(async () => {
+    if (!gymId) return;
+
+    if (!startDate || !endDate) {
+      toast.error("Please select both start and end dates");
+      return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      toast.error("Start date cannot be after end date");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await getReportData(gymId, startDate, endDate);
+      if (!result.success) {
+        toast.error(result.error || "Failed to load report");
+        return;
+      }
+
+      setRows(result.data.rows);
+      setSummary(result.data.summary);
+    } catch (error) {
+      console.error("Error loading report:", error);
+      toast.error("Failed to load report");
+    } finally {
+      setLoading(false);
+    }
+  }, [endDate, gymId, startDate]);
+
+  useEffect(() => {
+    loadReport();
+  }, [loadReport]);
 
   const handleLast30Days = () => {
     const now = new Date();
@@ -105,34 +117,51 @@ export default function ReportsPage() {
   };
 
   const handleGenerateReport = () => {
-    if (!startDate || !endDate) {
-      alert("Please select both start and end dates.");
-      return;
-    }
-    if (new Date(startDate) > new Date(endDate)) {
-      alert("Start date cannot be after end date.");
-      return;
-    }
-
-    const rows = buildReportRows(startDate, endDate);
     if (!rows.length) {
-      alert("No data available for the selected range.");
+      toast.error("No report rows available to export");
       return;
     }
 
     exportReportToExcel(rows, startDate, endDate);
+    toast.success("Report exported");
   };
+
+  const revenueBars = useMemo(() => {
+    const monthTotals = rows.reduce(
+      (totals, row) => {
+        const date = new Date(`${row.date}T00:00:00`);
+        const label = date.toLocaleDateString("en-US", { month: "short" });
+        totals[label] = (totals[label] ?? 0) + row.revenue;
+        return totals;
+      },
+      {} as Record<string, number>,
+    );
+
+    const entries = Object.entries(monthTotals).slice(-6);
+    const maxValue = Math.max(...entries.map(([, value]) => value), 1);
+
+    return entries.map(([label, value]) => ({
+      label,
+      value,
+      height: Math.max(8, Math.round((value / maxValue) * 100)),
+    }));
+  }, [rows]);
+
+  const weeklyCheckins = useMemo(() => rows.slice(-7), [rows]);
+  const maxWeeklyCheckins = Math.max(
+    ...weeklyCheckins.map((row) => row.checkins),
+    1,
+  );
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight uppercase">
             Reports &amp; Analytics
           </h2>
           <p className="text-slate-500 mt-1">
-            Real-time performance metrics for Iron Obsidian Gym.
+            Live Supabase performance metrics for {gymName || "your gym"}.
           </p>
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -144,7 +173,7 @@ export default function ReportsPage() {
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(event) => setStartDate(event.target.value)}
                 className="bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 scheme-dark focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </label>
@@ -155,7 +184,7 @@ export default function ReportsPage() {
               <input
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(event) => setEndDate(event.target.value)}
                 className="bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 scheme-dark focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </label>
@@ -164,259 +193,239 @@ export default function ReportsPage() {
             <button
               type="button"
               onClick={handleLast30Days}
-              className="flex items-center gap-2 bg-slate-900/80 dark:bg-slate-900/80 text-white px-4 py-2 rounded-lg text-sm font-semibold border border-slate-700 hover:bg-slate-800 transition-all"
+              className="flex items-center gap-2 bg-slate-900/80 text-white px-4 py-2 rounded-lg text-sm font-semibold border border-slate-700 hover:bg-slate-800 transition-all"
             >
-              <span>📅</span>
+              <span className="material-symbols-outlined text-[18px]">
+                calendar_month
+              </span>
               Last 30 Days
             </button>
             <button
               type="button"
-              onClick={handleGenerateReport}
-              className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/25 transition-all hover:bg-primary/90"
+              onClick={loadReport}
+              disabled={loading || !gymId}
+              className="flex items-center gap-2 bg-slate-900/80 text-white px-4 py-2 rounded-lg text-sm font-semibold border border-slate-700 hover:bg-slate-800 transition-all disabled:opacity-50"
             >
-              <span>⬇️</span>
-              Generate Report
+              <span className="material-symbols-outlined text-[18px]">
+                sync
+              </span>
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+            <button
+              type="button"
+              onClick={handleGenerateReport}
+              disabled={!rows.length}
+              className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                download
+              </span>
+              Export
             </button>
           </div>
         </div>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Revenue */}
-        <div className="bg-slate-900/70 dark:bg-slate-900/70 p-6 rounded-xl border border-primary/10 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 -mr-8 -mt-8 rounded-full blur-2xl" />
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-              <span>💳</span>
-            </div>
-            <span className="text-emerald-400 text-xs font-bold flex items-center bg-emerald-500/10 px-2 py-1 rounded-full">
-              <span className="mr-1">📈</span> +12.5%
-            </span>
-          </div>
-          <p className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">
-            Total Revenue (Monthly)
-          </p>
-          <h3 className="text-2xl font-extrabold text-white mt-1">
-            $42,850.00
-          </h3>
-        </div>
-
-        {/* New Members */}
-        <div className="bg-slate-900/70 dark:bg-slate-900/70 p-6 rounded-xl border border-primary/10 shadow-lg relative overflow-hidden">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-              <span>➕</span>
-            </div>
-            <span className="text-primary text-xs font-bold flex items-center bg-primary/10 px-2 py-1 rounded-full">
-              This Month
-            </span>
-          </div>
-          <p className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">
-            New Member Signups
-          </p>
-          <h3 className="text-2xl font-extrabold text-white mt-1">128</h3>
-        </div>
-
-        {/* Active Memberships */}
-        <div className="bg-slate-900/70 dark:bg-slate-900/70 p-6 rounded-xl border border-primary/10 shadow-lg relative overflow-hidden">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-              <span>👥</span>
-            </div>
-            <span className="text-slate-400 text-xs font-bold flex items-center bg-slate-400/10 px-2 py-1 rounded-full">
-              94% Active
-            </span>
-          </div>
-          <p className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">
-            Active Memberships
-          </p>
-          <h3 className="text-2xl font-extrabold text-white mt-1">1,402</h3>
-        </div>
-
-        {/* Attendance Rate */}
-        <div className="bg-slate-900/70 dark:bg-slate-900/70 p-6 rounded-xl border border-primary/10 shadow-lg relative overflow-hidden">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-              <span>✅</span>
-            </div>
-            <span className="text-orange-400 text-xs font-bold flex items-center bg-orange-400/10 px-2 py-1 rounded-full">
-              <span className="mr-1">⏱</span> Avg. Daily
-            </span>
-          </div>
-          <p className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">
-            Attendance Rate
-          </p>
-          <h3 className="text-2xl font-extrabold text-white mt-1">78.4%</h3>
-        </div>
+        <SummaryCard
+          icon="payments"
+          label="Total Revenue"
+          value={currencyFormatter.format(summary.totalRevenue)}
+          note={`${startDate} to ${endDate}`}
+        />
+        <SummaryCard
+          icon="person_add"
+          label="New Member Signups"
+          value={summary.newMembers.toString()}
+          note="Selected range"
+        />
+        <SummaryCard
+          icon="groups"
+          label="Active Memberships"
+          value={summary.activeMemberships.toString()}
+          note="Current total"
+        />
+        <SummaryCard
+          icon="fact_check"
+          label="Attendance Rate"
+          value={`${summary.averageAttendanceRate}%`}
+          note={`${summary.totalCheckins} check-ins`}
+        />
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[420px]">
-        {/* Monthly Revenue Trends - bar chart mock */}
-        <div className="bg-slate-900/70 dark:bg-slate-900/70 p-8 rounded-xl border border-primary/10 shadow-xl flex flex-col">
+        <div className="bg-slate-900/70 p-8 rounded-xl border border-primary/10 shadow-xl flex flex-col">
           <div className="flex justify-between items-center mb-8">
             <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <span className="w-1 h-4 bg-primary rounded-full" />
-              Monthly Revenue Trends
+              Revenue by Month
             </h4>
-            <div className="flex gap-2">
-              <div className="w-3 h-3 rounded-full bg-primary/40" />
-              <div className="w-3 h-3 rounded-full bg-primary" />
-            </div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Live payments
+            </span>
           </div>
           <div className="flex-1 flex items-end justify-between gap-6 px-4 pb-4">
-            {[
-              { label: "Jan", height: "40%", value: "$28k" },
-              { label: "Feb", height: "55%", value: "$32k" },
-              { label: "Mar", height: "48%", value: "" },
-              { label: "Apr", height: "72%", value: "" },
-              { label: "May", height: "85%", value: "" },
-              { label: "Jun", height: "95%", value: "$42k", highlight: true },
-            ].map((bar) => (
-              <div
-                key={bar.label}
-                className="flex flex-col items-center flex-1 group h-full justify-end"
-              >
+            {revenueBars.length === 0 ? (
+              <EmptyChartText>No revenue in this range.</EmptyChartText>
+            ) : (
+              revenueBars.map((bar) => (
                 <div
-                  className={`w-full rounded-t-lg transition-all relative ${
-                    bar.highlight ? "bg-primary shadow-lg shadow-primary/20" : "bg-primary/20 group-hover:bg-primary/40"
-                  }`}
-                  style={{ height: bar.height }}
+                  key={bar.label}
+                  className="flex flex-col items-center flex-1 group h-full justify-end"
                 >
-                  {bar.value && (
-                    <div
-                      className={`absolute -top-8 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded ${
-                        bar.highlight
-                          ? "bg-primary text-white shadow-lg"
-                          : "bg-slate-800 text-white opacity-0 group-hover:opacity-100"
-                      }`}
-                    >
-                      {bar.value}
+                  <div
+                    className="w-full rounded-t-lg transition-all relative bg-primary/40 group-hover:bg-primary"
+                    style={{ height: `${bar.height}%` }}
+                  >
+                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded bg-slate-800 text-white opacity-0 group-hover:opacity-100 whitespace-nowrap">
+                      {currencyFormatter.format(bar.value)}
                     </div>
-                  )}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase mt-4 text-slate-500">
+                    {bar.label}
+                  </span>
                 </div>
-                <span
-                  className={`text-[10px] font-bold uppercase mt-4 ${
-                    bar.highlight ? "text-white" : "text-slate-500"
-                  }`}
-                >
-                  {bar.label}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
-        {/* Member Check-ins (Weekly) - line chart mock */}
-        <div className="bg-slate-900/70 dark:bg-slate-900/70 p-8 rounded-xl border border-primary/10 shadow-xl flex flex-col">
+        <div className="bg-slate-900/70 p-8 rounded-xl border border-primary/10 shadow-xl flex flex-col">
           <div className="flex justify-between items-center mb-8">
             <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <span className="w-1 h-4 bg-orange-500 rounded-full" />
-              Member Check-ins (Weekly)
+              Recent Check-ins
             </h4>
-            <select className="bg-transparent border-none text-[10px] font-bold text-slate-400 uppercase tracking-widest focus:ring-0 cursor-pointer">
-              <option>Current Week</option>
-              <option>Last Week</option>
-            </select>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Last 7 rows
+            </span>
           </div>
-          <div className="flex-1 relative">
-            <svg
-              className="w-full h-full overflow-visible"
-              preserveAspectRatio="none"
-              viewBox="0 0 400 200"
-            >
-              <defs>
-                <linearGradient
-                  id="reportsLineGradient"
-                  x1="0%"
-                  x2="0%"
-                  y1="0%"
-                  y2="100%"
-                >
-                  <stop
-                    offset="0%"
-                    style={{ stopColor: "rgba(13,108,242,0.4)" }}
-                  />
-                  <stop
-                    offset="100%"
-                    style={{ stopColor: "rgba(13,108,242,0)" }}
-                  />
-                </linearGradient>
-              </defs>
-              {/* grid */}
-              <line
-                x1="0"
-                y1="50"
-                x2="400"
-                y2="50"
-                stroke="#2d3846"
-                strokeWidth="0.5"
-              />
-              <line
-                x1="0"
-                y1="100"
-                x2="400"
-                y2="100"
-                stroke="#2d3846"
-                strokeWidth="0.5"
-              />
-              <line
-                x1="0"
-                y1="150"
-                x2="400"
-                y2="150"
-                stroke="#2d3846"
-                strokeWidth="0.5"
-              />
-              {/* area */}
-              <path
-                d="M0,180 L50,140 L100,160 L150,100 L200,120 L250,60 L300,90 L350,40 L400,70 L400,200 L0,200 Z"
-                fill="url(#reportsLineGradient)"
-              />
-              {/* line */}
-              <path
-                d="M0,180 L50,140 L100,160 L150,100 L200,120 L250,60 L300,90 L350,40 L400,70"
-                fill="none"
-                stroke="#0d6cf2"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              {/* key points */}
-              <circle cx="250" cy="60" r="4" fill="#0d6cf2" />
-              <circle cx="350" cy="40" r="4" fill="#0d6cf2" />
-            </svg>
-            <div className="flex justify-between mt-6">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                <span
-                  key={d}
-                  className="text-[10px] font-bold text-slate-500 uppercase"
-                >
-                  {d}
-                </span>
-              ))}
-            </div>
+          <div className="flex-1 flex items-end justify-between gap-4 px-2 pb-4">
+            {weeklyCheckins.length === 0 ? (
+              <EmptyChartText>No check-ins in this range.</EmptyChartText>
+            ) : (
+              weeklyCheckins.map((row) => {
+                const height = Math.max(
+                  8,
+                  Math.round((row.checkins / maxWeeklyCheckins) * 100),
+                );
+                const label = new Date(`${row.date}T00:00:00`).toLocaleDateString(
+                  "en-US",
+                  { weekday: "short" },
+                );
+
+                return (
+                  <div
+                    key={row.date}
+                    className="flex flex-col items-center flex-1 group h-full justify-end"
+                  >
+                    <div
+                      className="w-full rounded-t-lg transition-all relative bg-orange-500/35 group-hover:bg-orange-500"
+                      style={{ height: `${height}%` }}
+                    >
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded bg-slate-800 text-white opacity-0 group-hover:opacity-100">
+                        {row.checkins}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase mt-4 text-slate-500">
+                      {label}
+                    </span>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="pt-4 border-t border-slate-800 text-[10px] font-bold text-slate-600 uppercase tracking-widest flex justify-between items-center">
-        <span>© 2024 IRON OBSIDIAN CORE SYSTEMS</span>
-        <div className="flex gap-6">
-          <button className="hover:text-primary transition-colors">
-            Privacy
-          </button>
-          <button className="hover:text-primary transition-colors">
-            Audit Logs
-          </button>
-          <button className="hover:text-primary transition-colors">
-            Support ID: 0922-XR
-          </button>
+      <div className="bg-slate-900/70 border border-primary/10 rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+            Daily Report Rows
+          </h3>
+          <span className="text-xs text-slate-500">{rows.length} days</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-black/20">
+              <tr>
+                {[
+                  "Date",
+                  "Revenue",
+                  "New Members",
+                  "Check-ins",
+                  "Attendance Rate",
+                ].map((heading) => (
+                  <th
+                    key={heading}
+                    className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-500"
+                  >
+                    {heading}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {rows.slice(-10).map((row) => (
+                <tr key={row.date} className="hover:bg-white/5">
+                  <td className="px-6 py-3 text-sm font-semibold text-white">
+                    {row.date}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-slate-300">
+                    {currencyFormatter.format(row.revenue)}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-slate-300">
+                    {row.newMembers}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-slate-300">
+                    {row.checkins}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-slate-300">
+                    {row.attendanceRate}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
 }
 
+function SummaryCard({
+  icon,
+  label,
+  value,
+  note,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  note: string;
+}) {
+  return (
+    <div className="bg-slate-900/70 p-6 rounded-xl border border-primary/10 shadow-lg relative overflow-hidden">
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-2 bg-primary/10 rounded-lg text-primary">
+          <span className="material-symbols-outlined text-[20px]">{icon}</span>
+        </div>
+        <span className="text-slate-400 text-xs font-bold flex items-center bg-slate-400/10 px-2 py-1 rounded-full">
+          {note}
+        </span>
+      </div>
+      <p className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">
+        {label}
+      </p>
+      <h3 className="text-2xl font-extrabold text-white mt-1">{value}</h3>
+    </div>
+  );
+}
+
+function EmptyChartText({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="w-full h-full min-h-56 flex items-center justify-center text-sm text-slate-500">
+      {children}
+    </div>
+  );
+}

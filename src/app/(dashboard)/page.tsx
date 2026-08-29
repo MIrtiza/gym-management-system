@@ -23,10 +23,29 @@ import {
   type TrialStatus,
 } from "@/lib/gym-service";
 
+interface DashboardCheckin {
+  id: string;
+  check_in_time: string;
+  check_out_time?: string | null;
+  duration_minutes?: number | null;
+  member?:
+    | {
+        name?: string | null;
+        email?: string | null;
+      }
+    | {
+        name?: string | null;
+        email?: string | null;
+      }[]
+    | null;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const gymId = user?.user_metadata?.gym_id;
-  const subscriptionRef = useRef<any>(null);
+  const subscriptionRef = useRef<ReturnType<typeof supabase.channel> | null>(
+    null,
+  );
 
   const [stats, setStats] = useState({
     totalMembers: 0,
@@ -40,7 +59,7 @@ export default function Dashboard() {
   const [attendanceData, setAttendanceData] = useState<
     { day: string; count: number }[]
   >([]);
-  const [checkinsData, setCheckinsData] = useState<any[]>([]);
+  const [checkinsData, setCheckinsData] = useState<DashboardCheckin[]>([]);
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
   const [showBanner, setShowBanner] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -57,6 +76,8 @@ export default function Dashboard() {
         subscriptionRef.current.unsubscribe();
       }
     };
+    // Existing dashboard loaders are scoped to gym changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gymId]);
 
   const loadDashboardData = async () => {
@@ -89,7 +110,7 @@ export default function Dashboard() {
 
     try {
       const gymRes = await getGymInfo(gymId);
-      if (gymRes.success) {
+      if (gymRes.success && gymRes.gym) {
         const trial = calculateTrialStatus(gymRes.gym.created_at);
         setTrialStatus(trial);
       }
@@ -141,8 +162,11 @@ export default function Dashboard() {
   };
 
   // Transform check-in data for table display
-  const transformedCheckins = checkinsData.slice(0, 5).map((checkin: any) => {
-    const name = checkin.member?.name || "Unknown";
+  const transformedCheckins = checkinsData.slice(0, 5).map((checkin) => {
+    const member = Array.isArray(checkin.member)
+      ? checkin.member[0]
+      : checkin.member;
+    const name = member?.name || "Unknown";
     const initials = name
       .split(" ")
       .map((n: string) => n[0])
@@ -185,7 +209,7 @@ export default function Dashboard() {
         <div>
           <h2 className="text-2xl font-800 tracking-tight">System Dashboard</h2>
           <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Welcome back. Here's what's happening today at IronCore.
+            Welcome back. Here is what is happening today at IronCore.
           </p>
         </div>
         <div className="flex items-center gap-2">
