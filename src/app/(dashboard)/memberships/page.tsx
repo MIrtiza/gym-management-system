@@ -1,10 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
+import { useAuth } from "@/lib/auth-context";
+import {
+  deleteMember,
+  getMembers,
+  updateMember,
+  type Member as SupabaseMember,
+} from "@/lib/member-service";
+import {
+  getAllPlans,
+  getPlanName,
+  type MembershipPlanKey,
+} from "@/lib/pricing-config";
 
-type PlanKey = "starter" | "pro" | "elite";
+type PlanKey = MembershipPlanKey;
 
-interface Plan {
+interface PlanDisplay {
   key: PlanKey;
   name: string;
   price: string;
@@ -17,31 +30,28 @@ interface Plan {
 interface MemberPlanRow {
   id: string;
   name: string;
+  email: string;
   memberId: string;
   plan: PlanKey;
-  status: "active" | "inactive";
+  status: string;
+  expiryDate: string;
 }
 
-const initialPlans: Plan[] = [
-  {
-    key: "starter",
-    name: "Starter",
-    price: "$49",
-    cycle: "/mo",
+const PLAN_DETAILS: Record<
+  PlanKey,
+  Pick<PlanDisplay, "badge" | "features" | "highlighted">
+> = {
+  starter: {
     badge: "Entry Level",
     features: [
       "Full gym access except sohana bath and steam bath",
-      "Standard support from coach",
+      "Standard coach support",
       "Cardio exercise",
       "Locker access",
       "Washroom access",
     ],
   },
-  {
-    key: "pro",
-    name: "Pro",
-    price: "$129",
-    cycle: "/3mo",
+  pro: {
     badge: "Most Popular",
     features: [
       "Full gym access",
@@ -49,16 +59,10 @@ const initialPlans: Plan[] = [
       "Steam bath access",
       "Clean towel",
       "Standard support",
-      "Cardio",
-      "Locker",
-      "Washroom",
+      "Cardio, locker, and washroom access",
     ],
   },
-  {
-    key: "elite",
-    name: "Elite",
-    price: "$499",
-    cycle: "/year",
+  elite: {
     badge: "Premium Access",
     highlighted: true,
     features: [
@@ -67,124 +71,169 @@ const initialPlans: Plan[] = [
       "Steam bath access",
       "Clean towel",
       "Standard support",
-      "Cardio",
-      "Locker",
-      "Washroom",
       "Personal trainer",
     ],
   },
-];
+};
+
+const formatDate = (value: string) => {
+  if (!value) return "Not set";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not set";
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
+
+const isPlanKey = (value: string): value is PlanKey =>
+  value === "starter" || value === "pro" || value === "elite";
 
 export default function MembershipsPage() {
-  const [plans, setPlans] = useState<Plan[]>(initialPlans);
-  const [members, setMembers] = useState<MemberPlanRow[]>([
-    {
-      id: "1",
-      name: "Marcus Thompson",
-      memberId: "#IC-4820",
-      plan: "starter",
-      status: "active",
-    },
-    {
-      id: "2",
-      name: "Elena Rodriguez",
-      memberId: "#IC-4821",
-      plan: "pro",
-      status: "active",
-    },
-    {
-      id: "3",
-      name: "Jordan Smith",
-      memberId: "#IC-4825",
-      plan: "elite",
-      status: "active",
-    },
-    {
-      id: "4",
-      name: "David Miller",
-      memberId: "#IC-4902",
-      plan: "pro",
-      status: "inactive",
-    },
-  ]);
+  const { user } = useAuth();
+  const gymId = user?.user_metadata?.gym_id;
 
+  const [members, setMembers] = useState<MemberPlanRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [savingMemberId, setSavingMemberId] = useState<string | null>(null);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [editingPlan, setEditingPlan] = useState<PlanKey>("starter");
 
+  const plans = useMemo<PlanDisplay[]>(
+    () =>
+      getAllPlans().map((plan) => ({
+        key: plan.key,
+        name: plan.name,
+        price: `$${plan.monthlyPrice}`,
+        cycle: "/month",
+        ...PLAN_DETAILS[plan.key],
+      })),
+    [],
+  );
+
+  const fetchMembers = useCallback(async () => {
+    if (!gymId) return;
+
+    setLoading(true);
+    try {
+      const result = await getMembers(gymId);
+      if (result.success) {
+        const rows = result.members.map((member: SupabaseMember) => ({
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          memberId: `#${member.id.slice(0, 8).toUpperCase()}`,
+          plan: isPlanKey(member.membership_type)
+            ? member.membership_type
+            : "starter",
+          status: member.status,
+          expiryDate: formatDate(member.membership_expiry),
+        }));
+
+        setMembers(rows);
+      }
+    } catch (error) {
+      console.error("Error loading membership members:", error);
+      toast.error("Failed to load memberships");
+    } finally {
+      setLoading(false);
+    }
+  }, [gymId]);
+
+  useEffect(() => {
+    if (gymId) {
+      fetchMembers();
+    }
+  }, [fetchMembers, gymId]);
+
   const editingMember = useMemo(
-    () => members.find((m) => m.id === editingMemberId) ?? null,
+    () => members.find((member) => member.id === editingMemberId) ?? null,
     [editingMemberId, members],
   );
 
-  const planNameByKey = (key: PlanKey) =>
-    plans.find((p) => p.key === key)?.name ?? key;
-
-  const removePlan = (plan: Plan) => {
-    if (plans.length <= 1) {
-      alert("At least one plan must remain.");
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Delete ${plan.name} plan? Members on this plan will be moved to Starter.`,
-    );
-    if (!confirmed) return;
-
-    setPlans((prev) => prev.filter((p) => p.key !== plan.key));
-    setMembers((prev) =>
-      prev.map((m) => (m.plan === plan.key ? { ...m, plan: "starter" } : m)),
-    );
-
-    if (editingMemberId) {
-      const editing = members.find((m) => m.id === editingMemberId);
-      if (editing?.plan === plan.key) {
-        setEditingPlan("starter");
-      }
-    }
-  };
+  const planCounts = useMemo(
+    () =>
+      members.reduce(
+        (counts, member) => ({
+          ...counts,
+          [member.plan]: counts[member.plan] + 1,
+        }),
+        { starter: 0, pro: 0, elite: 0 } as Record<PlanKey, number>,
+      ),
+    [members],
+  );
 
   const openEditPlan = (member: MemberPlanRow) => {
     setEditingMemberId(member.id);
     setEditingPlan(member.plan);
   };
 
-  const saveEditedPlan = () => {
+  const saveEditedPlan = async () => {
     if (!editingMemberId) return;
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === editingMemberId ? { ...m, plan: editingPlan } : m,
-      ),
-    );
-    setEditingMemberId(null);
+
+    setSavingMemberId(editingMemberId);
+    try {
+      await updateMember(editingMemberId, { membership_type: editingPlan });
+      setMembers((current) =>
+        current.map((member) =>
+          member.id === editingMemberId
+            ? { ...member, plan: editingPlan }
+            : member,
+        ),
+      );
+      toast.success("Member plan updated");
+      setEditingMemberId(null);
+    } catch (error) {
+      console.error("Error updating member plan:", error);
+      toast.error("Failed to update member plan");
+    } finally {
+      setSavingMemberId(null);
+    }
   };
 
-  const removeMember = (id: string, name: string) => {
+  const removeMember = async (id: string, name: string) => {
     const confirmed = window.confirm(
-      `Remove ${name} from memberships? This action cannot be undone.`,
+      `Remove ${name} from this gym? This deletes the member record.`,
     );
     if (!confirmed) return;
-    setMembers((prev) => prev.filter((m) => m.id !== id));
+
+    setSavingMemberId(id);
+    try {
+      await deleteMember(id);
+      setMembers((current) => current.filter((member) => member.id !== id));
+      toast.success("Member removed");
+    } catch (error) {
+      console.error("Error removing member:", error);
+      toast.error("Failed to remove member");
+    } finally {
+      setSavingMemberId(null);
+    }
   };
 
   return (
     <div className="space-y-10">
-      {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-3xl font-black tracking-tight">
             Membership Plans
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Configure and manage your membership tiers and pricing
+            Manage plan assignments from live Supabase member records.
           </p>
         </div>
-        <button className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
-          <span>➕</span>
-          Create Plan
+        <button
+          type="button"
+          onClick={fetchMembers}
+          disabled={loading || !gymId}
+          className="bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+        >
+          {loading ? "Refreshing..." : "Refresh"}
         </button>
       </header>
 
-      {/* Plans Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <div
@@ -192,7 +241,7 @@ export default function MembershipsPage() {
             className={`flex flex-col rounded-xl overflow-hidden transition-all duration-300 ${
               plan.highlighted
                 ? "bg-white dark:bg-[#1b2027] border-2 border-primary/50 shadow-[0_0_20px_rgba(13,108,242,0.15)]"
-                : "bg-white dark:bg-[#1b2027] border border-slate-200 dark:border-[#3b4554] hover:border-slate-300 dark:hover:border-slate-500"
+                : "bg-white dark:bg-[#1b2027] border border-slate-200 dark:border-[#3b4554]"
             }`}
           >
             <div className="p-8 pb-4">
@@ -203,8 +252,12 @@ export default function MembershipsPage() {
                     : "text-slate-500 dark:text-slate-400"
                 }`}
               >
-                <span>
-                  {plan.highlighted ? "🏆" : plan.key === "pro" ? "💪" : "⚡"}
+                <span className="material-symbols-outlined text-[20px]">
+                  {plan.highlighted
+                    ? "workspace_premium"
+                    : plan.key === "pro"
+                      ? "fitness_center"
+                      : "bolt"}
                 </span>
                 <span className="text-xs font-bold uppercase tracking-wider">
                   {plan.badge}
@@ -227,6 +280,9 @@ export default function MembershipsPage() {
                   {plan.cycle}
                 </span>
               </div>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mt-4">
+                {planCounts[plan.key]} members assigned
+              </p>
             </div>
 
             <div
@@ -238,38 +294,31 @@ export default function MembershipsPage() {
             >
               {plan.features.map((feature) => (
                 <div key={feature} className="flex items-start gap-3">
-                  <span className="text-primary text-xl leading-5">✔</span>
+                  <span className="material-symbols-outlined text-primary text-[18px] leading-5">
+                    check_circle
+                  </span>
                   <span className="text-sm text-slate-700 dark:text-slate-300">
                     {feature}
                   </span>
                 </div>
               ))}
             </div>
-
-            <div className="p-8 space-y-2">
-              <button className="w-full bg-slate-200 dark:bg-[#282f39] hover:bg-slate-300 dark:hover:bg-[#343d4a] text-slate-800 dark:text-white py-3 rounded-lg font-bold text-sm transition-all">
-                Edit Plan
-              </button>
-              <button
-                type="button"
-                onClick={() => removePlan(plan)}
-                className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 py-3 rounded-lg font-bold text-sm transition-all border border-red-500/20"
-              >
-                Delete Plan
-              </button>
-            </div>
           </div>
         ))}
       </div>
 
-      {/* Member Plans Management */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-            Member Plan Management
-          </h3>
+        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+              Member Plan Management
+            </h3>
+            <p className="text-xs text-slate-500">
+              These rows come from the Supabase members table.
+            </p>
+          </div>
           <p className="text-xs text-slate-500">
-            Edit member plan assignments or remove members.
+            Total members: {members.length}
           </p>
         </div>
 
@@ -285,6 +334,9 @@ export default function MembershipsPage() {
                     Current Plan
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                    Expiry
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
                     Status
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400 text-right">
@@ -293,62 +345,90 @@ export default function MembershipsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-[#2d333d]">
-                {members.map((member) => (
-                  <tr
-                    key={member.id}
-                    className="hover:bg-slate-50 dark:hover:bg-[#222831]/50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-bold text-sm">{member.name}</p>
-                        <p className="text-xs text-slate-500">
-                          ID: {member.memberId}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-semibold">
-                        {planNameByKey(member.plan)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                          member.status === "active"
-                            ? "bg-emerald-500/10 text-emerald-500"
-                            : "bg-slate-500/10 text-slate-500"
-                        }`}
-                      >
-                        {member.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openEditPlan(member)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-[#3b4554] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#2b3340]"
-                        >
-                          Edit Plan
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeMember(member.id, member.name)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/30 text-red-500 hover:bg-red-500/10"
-                        >
-                          Remove Member
-                        </button>
-                      </div>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-6 py-10 text-center text-sm text-slate-500"
+                    >
+                      Loading memberships...
                     </td>
                   </tr>
-                ))}
+                ) : members.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-6 py-10 text-center text-sm text-slate-500"
+                    >
+                      No members found for this gym.
+                    </td>
+                  </tr>
+                ) : (
+                  members.map((member) => (
+                    <tr
+                      key={member.id}
+                      className="hover:bg-slate-50 dark:hover:bg-[#222831]/50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-bold text-sm">{member.name}</p>
+                          <p className="text-xs text-slate-500">
+                            {member.memberId} | {member.email || "No email"}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-semibold">
+                          {getPlanName(member.plan)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-500">
+                        {member.expiryDate}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                            member.status === "active"
+                              ? "bg-emerald-500/10 text-emerald-500"
+                              : member.status === "pending"
+                                ? "bg-amber-500/10 text-amber-500"
+                                : "bg-slate-500/10 text-slate-500"
+                          }`}
+                        >
+                          {member.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditPlan(member)}
+                            disabled={savingMemberId === member.id}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-[#3b4554] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#2b3340] disabled:opacity-50"
+                          >
+                            Edit Plan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeMember(member.id, member.name)
+                            }
+                            disabled={savingMemberId === member.id}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/30 text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </section>
 
-      {/* Edit Plan Modal */}
       {editingMember && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white dark:bg-[#1b2027] rounded-xl border border-slate-200 dark:border-[#3b4554] shadow-2xl overflow-hidden">
@@ -363,8 +443,11 @@ export default function MembershipsPage() {
                 type="button"
                 onClick={() => setEditingMemberId(null)}
                 className="text-slate-400 hover:text-white"
+                aria-label="Close modal"
               >
-                ✕
+                <span className="material-symbols-outlined text-[20px]">
+                  close
+                </span>
               </button>
             </div>
             <div className="p-6 space-y-4">
@@ -373,7 +456,9 @@ export default function MembershipsPage() {
               </label>
               <select
                 value={editingPlan}
-                onChange={(e) => setEditingPlan(e.target.value as PlanKey)}
+                onChange={(event) =>
+                  setEditingPlan(event.target.value as PlanKey)
+                }
                 className="w-full bg-slate-50 dark:bg-[#282f39] border border-slate-200 dark:border-[#3b4554] rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/40 outline-none"
               >
                 {plans.map((plan) => (
@@ -394,9 +479,12 @@ export default function MembershipsPage() {
               <button
                 type="button"
                 onClick={saveEditedPlan}
-                className="px-4 py-2 rounded-lg text-sm font-bold bg-[#0d6cf2] text-white hover:bg-primary/90"
+                disabled={savingMemberId === editingMember.id}
+                className="px-4 py-2 rounded-lg text-sm font-bold bg-[#0d6cf2] text-white hover:bg-primary/90 disabled:opacity-50"
               >
-                Save Plan
+                {savingMemberId === editingMember.id
+                  ? "Saving..."
+                  : "Save Plan"}
               </button>
             </div>
           </div>

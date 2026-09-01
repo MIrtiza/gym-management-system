@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { sendPaymentReceipt } from "@/lib/whatsapp-service";
-import Button from "@/components/common/Button";
+import { Button } from "@/components/common/Button";
 
 interface ResendPaymentSlipProps {
   gymId: string;
@@ -17,7 +17,6 @@ export default function ResendPaymentSlip({
   gymId,
   memberId,
   memberName,
-  paymentId,
   pdfUrl,
   isCompact = false,
   onSuccess,
