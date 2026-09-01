@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IronCore - Membership Plans</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d6cf2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .plan-card-elite {
+            box-shadow: 0 0 20px rgba(13, 108, 242, 0.15);
+            border-color: rgba(13, 108, 242, 0.5) !important;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="w-64 bg-white dark:bg-[#111418] border-r border-slate-200 dark:border-slate-800 flex flex-col fixed h-full z-50">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl font-bold">fitness_center</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-lg font-bold leading-tight tracking-tight">IronCore</h1>
+<p class="text-slate-500 text-xs font-medium">Gym Management</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">card_membership</span>
+<span class="text-sm font-medium">Memberships</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">exercise</span>
+<span class="text-sm font-medium">Training</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-sm font-medium">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-4 border-t border-slate-800">
+<div class="flex items-center gap-3 p-2">
+<div class="size-8 rounded-full bg-slate-700 overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Profile picture of gym administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpZXbOA1lvwqpnLMOMRbx5wMnvp99FHm8NwRWVS0t7R_g2iKP6Eulg6iyoj8acnsploTCsG3yZ12095R1QzaBrH--ofVgC6tMXNvMfJj22Raik238r5TH0osi-y3itRw33dnVNttQPD3I2MQFKC52XM5t2CTuA7UXheiPOrGNndQWuJMH1Kq35anTL-n97qYdym54AVpdDOSMqi9YMfkfPyd1uTov0HxubAkycPt74iEs6GCtowuVVIvur8RQ-JaENLFRBspSJsQ5X"/>
+</div>
+<div class="flex flex-col">
+<p class="text-xs font-bold text-white leading-none">Alex Rivera</p>
+<p class="text-[10px] text-slate-500">Admin Account</p>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-sm ml-auto">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-64 p-8">
+<!-- Header Section -->
+<header class="flex flex-wrap items-center justify-between gap-4 mb-10">
+<div class="flex flex-col gap-1">
+<h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Membership Plans</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Configure and manage your membership tiers and pricing</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-lg">add_circle</span>
+                    Create Plan
+                </button>
+</header>
+<!-- Plans Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl">
+<!-- Starter Plan -->
+<div class="flex flex-col bg-white dark:bg-[#1b2027] rounded-xl border border-slate-200 dark:border-[#3b4554] overflow-hidden group hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300">
+<div class="p-8 pb-4">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-4">
+<span class="material-symbols-outlined">bolt</span>
+<span class="text-xs font-bold uppercase tracking-wider">Entry Level</span>
+</div>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">Starter</h3>
+<div class="flex items-baseline gap-1 mt-4">
+<span class="text-4xl font-black text-slate-900 dark:text-white tracking-tight">$49</span>
+<span class="text-slate-500 dark:text-slate-400 font-bold">/mo</span>
+</div>
+</div>
+<div class="px-8 py-6 flex flex-col gap-4 border-y border-slate-100 dark:border-[#3b4554] bg-slate-50/30 dark:bg-black/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Basic Gym Access</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Standard Support</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Mobile App Access</span>
+</div>
+</div>
+<div class="p-8">
+<button class="w-full bg-slate-200 dark:bg-[#282f39] hover:bg-slate-300 dark:hover:bg-[#343d4a] text-slate-800 dark:text-white py-3 rounded-lg font-bold text-sm transition-all">
+                            Edit Plan
+                        </button>
+</div>
+</div>
+<!-- Pro Plan -->
+<div class="flex flex-col bg-white dark:bg-[#1b2027] rounded-xl border border-slate-200 dark:border-[#3b4554] overflow-hidden group hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300">
+<div class="p-8 pb-4">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-4">
+<span class="material-symbols-outlined text-primary">fitness_center</span>
+<span class="text-xs font-bold uppercase tracking-wider">Most Popular</span>
+</div>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">Pro</h3>
+<div class="flex items-baseline gap-1 mt-4">
+<span class="text-4xl font-black text-slate-900 dark:text-white tracking-tight">$129</span>
+<span class="text-slate-500 dark:text-slate-400 font-bold">/3mo</span>
+</div>
+</div>
+<div class="px-8 py-6 flex flex-col gap-4 border-y border-slate-100 dark:border-[#3b4554] bg-slate-50/30 dark:bg-black/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300 font-medium">Full Gym Access</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">1 PT Session / Month</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Nutrition Guide</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Standard Support</span>
+</div>
+</div>
+<div class="p-8">
+<button class="w-full bg-slate-200 dark:bg-[#282f39] hover:bg-slate-300 dark:hover:bg-[#343d4a] text-slate-800 dark:text-white py-3 rounded-lg font-bold text-sm transition-all">
+                            Edit Plan
+                        </button>
+</div>
+</div>
+<!-- Elite Plan -->
+<div class="flex flex-col bg-white dark:bg-[#1b2027] rounded-xl border-2 plan-card-elite relative overflow-hidden group transition-all duration-300 transform hover:-translate-y-1">
+<div class="absolute top-0 right-0">
+<div class="bg-primary text-white text-[10px] font-black uppercase tracking-tighter px-6 py-1 rotate-45 translate-x-4 translate-y-2 shadow-lg">
+                            Best Value
+                        </div>
+</div>
+<div class="p-8 pb-4">
+<div class="flex items-center gap-2 text-primary mb-4">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="text-xs font-bold uppercase tracking-wider">Premium Access</span>
+</div>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">Elite</h3>
+<div class="flex items-baseline gap-1 mt-4">
+<span class="text-4xl font-black text-primary tracking-tight">$499</span>
+<span class="text-slate-500 dark:text-slate-400 font-bold">/year</span>
+</div>
+</div>
+<div class="px-8 py-6 flex flex-col gap-4 border-y border-slate-100 dark:border-[#3b4554] bg-primary/5 dark:bg-primary/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300 font-bold">All-access Membership</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Unlimited PT Sessions</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Personal Locker</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Guest Passes (4/mo)</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+<span class="text-sm text-slate-700 dark:text-slate-300">Premium Support</span>
+</div>
+</div>
+<div class="p-8">
+<button class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold text-sm transition-all shadow-lg shadow-primary/20">
+                            Edit Plan
+                        </button>
+</div>
+</div>
+</div>
+<!-- Dashboard Stats Summary -->
+<div class="mt-12 max-w-6xl">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Plan Statistics Overview</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-[#1b2027] border border-slate-200 dark:border-[#3b4554] p-6 rounded-xl">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Active Members</p>
+<div class="flex items-center justify-between">
+<span class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">1,240</span>
+<span class="text-[#0bda5e] bg-[#0bda5e]/10 px-2 py-0.5 rounded text-xs font-bold">+5.2%</span>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1b2027] border border-slate-200 dark:border-[#3b4554] p-6 rounded-xl">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Monthly Revenue</p>
+<div class="flex items-center justify-between">
+<span class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">$14,200</span>
+<span class="text-[#0bda5e] bg-[#0bda5e]/10 px-2 py-0.5 rounded text-xs font-bold">+8.1%</span>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1b2027] border border-slate-200 dark:border-[#3b4554] p-6 rounded-xl">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Conversion Rate</p>
+<div class="flex items-center justify-between">
+<span class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">12%</span>
+<span class="text-[#0bda5e] bg-[#0bda5e]/10 px-2 py-0.5 rounded text-xs font-bold">+2.4%</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

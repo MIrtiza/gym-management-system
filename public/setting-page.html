@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IronCore Settings | Iron Obsidian</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-secondary-container": "#cbd5e1",
+            "surface-tint": "#0d6cf2",
+            "on-secondary-fixed-variant": "#334155",
+            "primary-container": "#0d6cf2",
+            "surface-dim": "#0b0f16",
+            "secondary-fixed": "#e2e8f0",
+            "on-tertiary-fixed-variant": "#9a3412",
+            "surface-container": "#1a222e",
+            "inverse-surface": "#f1f5f9",
+            "primary": "#0d6cf2",
+            "on-secondary": "#f8fafc",
+            "on-error-container": "#fecaca",
+            "primary-fixed-dim": "#93c5fd",
+            "surface-bright": "#1a222e",
+            "tertiary-fixed": "#ffedd5",
+            "on-surface": "#f8fafc",
+            "on-error": "#ffffff",
+            "background": "#101722",
+            "tertiary-container": "#431407",
+            "outline": "#334155",
+            "on-primary-fixed-variant": "#1d4ed8",
+            "surface-container-low": "#101722",
+            "surface-container-highest": "#2d3846",
+            "error": "#ef4444",
+            "secondary-container": "#1e293b",
+            "tertiary-fixed-dim": "#fdba74",
+            "on-tertiary-fixed": "#7c2d12",
+            "primary-fixed": "#dbeafe",
+            "secondary-fixed-dim": "#94a3b8",
+            "secondary": "#334155",
+            "on-tertiary": "#ffffff",
+            "on-primary-fixed": "#1e3a8a",
+            "tertiary": "#f97316",
+            "on-primary": "#ffffff",
+            "surface-variant": "#1a222e",
+            "on-background": "#f8fafc",
+            "error-container": "#7f1d1d",
+            "surface": "#101722",
+            "surface-container-high": "#242d3a",
+            "inverse-on-surface": "#0f172a",
+            "on-secondary-fixed": "#0f172a",
+            "on-primary-container": "#ffffff",
+            "surface-container-lowest": "#080b10",
+            "on-tertiary-container": "#fed7aa",
+            "inverse-primary": "#60a5fa",
+            "outline-variant": "#1e293b",
+            "on-surface-variant": "#94a3b8"
+          },
+          fontFamily: {
+            "headline": ["Manrope"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #101722;
+      font-family: 'Manrope', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #101722;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d3846;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="text-on-background antialiased overflow-x-hidden">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#101722] dark:bg-[#101722] shadow-xl flex flex-col h-full py-6 z-50">
+<div class="px-6 mb-10">
+<div class="text-xl font-black text-slate-50 uppercase tracking-[0.1em] font-manrope">Iron Obsidian</div>
+<div class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.15em] mt-1">Gym Management</div>
+</div>
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-[#0d6cf2] bg-[#0d6cf2]/10 border-r-2 border-[#0d6cf2] font-bold" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-manrope tracking-tight">General</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 font-medium hover:bg-[#1a222e] hover:text-white group" href="#">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span class="font-manrope tracking-tight">Membership</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 font-medium hover:bg-[#1a222e] hover:text-white group" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-manrope tracking-tight">Staff</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 font-medium hover:bg-[#1a222e] hover:text-white group" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-manrope tracking-tight">Billing</span>
+</a>
+</nav>
+<div class="px-6 pt-6 border-t border-outline-variant/30 mt-auto">
+<div class="flex items-center gap-3">
+<img alt="Admin Profile Avatar" class="w-10 h-10 rounded-full bg-surface-container-highest" data-alt="Close-up professional portrait of a fitness center administrator in a dark tech-focused environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAewMPXrNTcRRZuj28y3Y0kfCSoWvkrN2KIPvBMCvYpZkcJQeyaTZDGmFXLrMSbBKHVFPwfcIy3Yfx65CpG-cQifg4D53OdQK4EtvvYoeeZds0UJrOpRCkO2A3a2SfAOKcJH_RhzoGAanucIYAF6PSlfSAJT9KiQFHzF9PCsCDHR7qnHlt1CQyUMHCceSbExw5icNlBu0teqla0JxGiiF6pRHZf9brO3uoQYquTXWMJgwEiUuvstQczjLM3j2fQR5Lf7dkOWYp-o6HB"/>
+<div class="overflow-hidden">
+<p class="text-sm font-bold text-slate-100 truncate">Alex Sterling</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-wider">Super Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-[#101722]/80 backdrop-blur-md flex justify-between items-center px-8 z-40 shadow-sm">
+<div class="flex items-center gap-6 flex-1">
+<div class="text-lg font-extrabold text-slate-100 font-manrope">Admin Console</div>
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="w-full bg-surface-container border-none rounded-lg py-2 pl-10 pr-4 text-sm text-on-surface focus:ring-2 focus:ring-primary placeholder:text-on-surface-variant/50" placeholder="Search settings..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-400 hover:text-[#0d6cf2] transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-[#0d6cf2] transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 pb-32 px-12">
+<div class="max-w-5xl mx-auto space-y-12">
+<!-- Section: General Settings -->
+<section class="scroll-mt-24" id="general">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h2 class="text-2xl font-extrabold tracking-tight text-white">General Settings</h2>
+<p class="text-sm text-on-surface-variant mt-1">Manage core gym identity and operational hours.</p>
+</div>
+</div>
+<div class="bg-surface-container rounded-xl p-8 shadow-lg space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Gym Name</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary" type="text" value="IronCore Performance Center"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Contact Email</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary" type="email" value="ops@ironcoregym.com"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Address</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary" type="text" value="742 Powerhouse Ave, Suite 100, Austin, TX"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Phone Number</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary" type="text" value="+1 (512) 555-0199"/>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/30">
+<label class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em] mb-4 block">Business Hours</label>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-surface-container-highest p-4 rounded-lg flex flex-col gap-2">
+<span class="text-xs font-bold">Mon - Fri</span>
+<span class="text-sm text-primary">05:00 AM - 11:00 PM</span>
+</div>
+<div class="bg-surface-container-highest p-4 rounded-lg flex flex-col gap-2">
+<span class="text-xs font-bold">Saturday</span>
+<span class="text-sm text-primary">07:00 AM - 09:00 PM</span>
+</div>
+<div class="bg-surface-container-highest p-4 rounded-lg flex flex-col gap-2">
+<span class="text-xs font-bold">Sunday</span>
+<span class="text-sm text-primary">08:00 AM - 06:00 PM</span>
+</div>
+<button class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Membership Configuration -->
+<section class="scroll-mt-24" id="membership">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h2 class="text-2xl font-extrabold tracking-tight text-white">Membership Configuration</h2>
+<p class="text-sm text-on-surface-variant mt-1">Policies for billing and member lifecycle.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="bg-surface-container rounded-xl p-6 shadow-lg border-l-4 border-primary">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="autorenew">autorenew</span>
+</div>
+<div class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</div>
+<h3 class="font-bold text-lg mb-1">Auto-Renewal</h3>
+<p class="text-xs text-on-surface-variant">Automatically bill members for the next cycle upon expiration.</p>
+</div>
+<div class="bg-surface-container rounded-xl p-6 shadow-lg">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-highest rounded-lg text-on-surface">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+</div>
+<input class="w-16 bg-surface-container-highest border-none rounded-lg p-2 text-center text-sm font-bold text-primary focus:ring-0" type="number" value="5"/>
+</div>
+<h3 class="font-bold text-lg mb-1">Guest Pass Limit</h3>
+<p class="text-xs text-on-surface-variant">Maximum number of guest passes issued to premium members per month.</p>
+</div>
+<div class="bg-surface-container rounded-xl p-6 shadow-lg">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-highest rounded-lg text-on-surface">
+<span class="material-symbols-outlined" data-icon="ac_unit">ac_unit</span>
+</div>
+<div class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</div>
+<h3 class="font-bold text-lg mb-1">Freeze Policy</h3>
+<p class="text-xs text-on-surface-variant">Allow members to temporarily pause their subscription for medical reasons.</p>
+</div>
+</div>
+</section>
+<!-- Section: Staff Management -->
+<section class="scroll-mt-24" id="staff">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h2 class="text-2xl font-extrabold tracking-tight text-white">Staff Management</h2>
+<p class="text-sm text-on-surface-variant mt-1">Manage roles and permissions for your team.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="person_add">person_add</span>
+            Add Staff Member
+          </button>
+</div>
+<div class="bg-surface-container rounded-xl shadow-lg overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high border-b border-outline-variant/30">
+<th class="px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Name</th>
+<th class="px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Role</th>
+<th class="px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Status</th>
+<th class="px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em] text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<img alt="Staff Avatar" class="w-8 h-8 rounded-full" data-alt="Portrait of a young muscular male trainer in a gym setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9gkhfHG_oDX_nTJ5cEFYypys66kWEb5YH9jYv0YY9nMy-cO-TRmfJvFo5_azzKf_TYmsatdKTQZdqpGudzCBMqsbsueCtp4HTBGiDLBYKR94Vjkm1lT3DutqUv3wwGliiGqog78YuJx9JTV3V9k-zdLSDvrbWTpYtolJNUW1zxCft-19HVpINWeZoXgrrwWDMH6H5buE0EX6sIKS5qgz1GnEnWKVE6wS3taCN1U6Erphd6DQUmnrRpf9v6XzZHux4RJgiKTkqj6yC"/>
+<span class="font-bold text-slate-100">James Dagger</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="text-xs px-2.5 py-1 bg-tertiary/10 text-tertiary rounded-full font-semibold border border-tertiary/20">Trainer</span>
+</td>
+<td class="px-8 py-5">
+<span class="flex items-center gap-1.5 text-xs text-green-400 font-semibold">
+<span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Active
+                  </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-slate-400 hover:text-white"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<img alt="Staff Avatar" class="w-8 h-8 rounded-full" data-alt="Professional portrait of a female receptionist in a modern office or gym foyer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8Plw3AIqMLjBqXgJt9Fy6zG4MpFqFCum0RfqT224Vup94wRykIVreNMvvmyoOBi2DnvmlpAm3gEXvhTjGq0mTaeTM29CrJVI-EzGqrii_gIsYuBd5uPZfBoYgvoNmN0xhATIeCMaQvUk0boDmcDUnTl1pQPUPe1tjdJE6n0KBVi7jTbngFJgP8oqhKtwfFvK1CLqJGePLZbpCLGa0PWhkA8JO-ecQFjPYObxiUC3LjaD6-qhvfrPEGyO8QSUlnXHRLY6-rIuky1zO"/>
+<span class="font-bold text-slate-100">Sarah Hughes</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="text-xs px-2.5 py-1 bg-secondary-container text-on-secondary-container rounded-full font-semibold">Receptionist</span>
+</td>
+<td class="px-8 py-5">
+<span class="flex items-center gap-1.5 text-xs text-green-400 font-semibold">
+<span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Active
+                  </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-slate-400 hover:text-white"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<img alt="Staff Avatar" class="w-8 h-8 rounded-full" data-alt="Middle-aged man with focused expression, fitness professional headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu-3hvuS8WMhPPcLT7cgbplx_Ul5LuacTMBjX_ZIzEJ0DRYNRK3lSnsO3ibH_6DOlFi-NnObGXMszr7I_qAc0mAdGho_iJTCtdvmCEkfFAvzDXFZK7FXmkpP2YgAXWsfx3wn4Wh9l11H0RHn1vdlc_VBPtQkUBHgGGYYtH7CWZGmEBtWEvmXwYvZHKK30Ya9lXP83zOYQAxnTqUQ5ygiIRVEqakThncLdR9JVa3zO7pfhQH8Sn3KFAGX9clw58URhshD_O3vfxpALD"/>
+<span class="font-bold text-slate-100">Robert K.</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="text-xs px-2.5 py-1 bg-primary/10 text-primary rounded-full font-semibold border border-primary/20">Admin</span>
+</td>
+<td class="px-8 py-5">
+<span class="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
+<span class="w-1.5 h-1.5 bg-slate-500 rounded-full"></span> Offline
+                  </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-slate-400 hover:text-white"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Section: Security -->
+<section class="scroll-mt-24" id="security">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h2 class="text-2xl font-extrabold tracking-tight text-white">Security &amp; Access</h2>
+<p class="text-sm text-on-surface-variant mt-1">Protect your administrative console.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="bg-surface-container rounded-xl p-8 shadow-lg">
+<h3 class="font-bold text-lg mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="lock">lock</span>
+              Change Password
+            </h3>
+<div class="space-y-4">
+<div class="space-y-2">
+<label class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">Current Password</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary" placeholder="••••••••••••" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.1em]">New Password</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary" placeholder="Min. 12 characters" type="password"/>
+</div>
+<button class="w-full bg-surface-container-highest text-white py-3 rounded-lg font-bold text-sm hover:bg-outline-variant transition-colors">Update Password</button>
+</div>
+</div>
+<div class="bg-surface-container rounded-xl p-8 shadow-lg flex flex-col justify-between">
+<div>
+<h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="shield">shield</span>
+                Two-Factor Authentication
+              </h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Add an extra layer of security to your account by requiring a verification code in addition to your password.</p>
+<div class="mt-8 flex items-center gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10">
+<div class="p-3 bg-primary/20 rounded-full text-primary">
+<span class="material-symbols-outlined" data-icon="smartphone" style="font-variation-settings: 'FILL' 1;">smartphone</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">SMS Authentication</p>
+<p class="text-xs text-on-surface-variant">Recommended for mobile access</p>
+</div>
+<div class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 text-xs text-slate-500">
+              Last security audit: <span class="text-slate-300">2 days ago</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Save Changes Bar -->
+<footer class="fixed bottom-0 right-0 w-[calc(100%-16rem)] bg-[#1a222e]/95 backdrop-blur-lg border-t border-primary/10 px-12 py-4 z-50 flex items-center justify-between shadow-2xl">
+<div class="flex items-center gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary animate-pulse" data-icon="sync">sync</span>
+<span>Unsaved changes detected in <strong>Membership Configuration</strong></span>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-colors">Discard</button>
+<button class="bg-primary text-white px-10 py-2.5 rounded-lg font-bold text-sm shadow-xl shadow-primary/25 hover:scale-[1.05] active:scale-95 transition-all">
+        Save All Changes
+      </button>
+</div>
+</footer>
+</body></html>

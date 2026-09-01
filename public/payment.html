@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IronCore - Payments Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d6cf2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d3748;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 bg-white dark:bg-[#111418] border-r border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined font-bold">fitness_center</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-tight tracking-tight">IronCore</h1>
+<p class="text-xs text-slate-500 font-medium">GYM MANAGEMENT</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">grid_view</span>
+<span class="text-sm font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">group</span>
+<span class="text-sm font-semibold">Members</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">event_available</span>
+<span class="text-sm font-semibold">Attendance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">payments</span>
+<span class="text-sm font-bold">Payments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">card_membership</span>
+<span class="text-sm font-semibold">Memberships</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">exercise</span>
+<span class="text-sm font-semibold">Services</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">bar_chart</span>
+<span class="text-sm font-semibold">Reports</span>
+</a>
+<div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+<span class="text-sm font-semibold">Settings</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<button class="flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">logout</span>
+                    Logout
+                </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-hidden">
+<!-- Top Bar -->
+<header class="h-16 flex items-center justify-between px-8 bg-white dark:bg-[#111418] border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 text-slate-700 dark:text-slate-200 placeholder:text-slate-500" placeholder="Search transactions, members..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-lg transition-all shadow-sm">
+<span class="material-symbols-outlined text-lg">add</span>
+                        Add Payment
+                    </button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
+<button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white dark:border-[#111418] rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 pl-2">
+<div class="flex flex-col items-end">
+<span class="text-sm font-bold leading-none">Admin User</span>
+<span class="text-[10px] font-medium text-slate-500 uppercase">Super Admin</span>
+</div>
+<img alt="Admin Avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700" data-alt="Professional portrait of a male gym administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIZxoDuw0HaoLUNGk8sXuNpgYJx4RPCeJSa2XWhyjPofVDdVcDmDNARMMilVebLQIlQlDOTDqpX205Tx5FA4aqO24T_BLgVW6QRIcJDEbCmMnp2JEKvft9A8x_IAKr5h4B23QNmrq-_pcDv6vB3psqu7KeEGyouyBvQgjXIQCZfgPfQPI3xDwvyrZg5Q2u9S40zTPlLA215x2pSDoOFrqMaix48KS6DJTrMeDpVJFvDy7GyoI6Pl0vTumTV081ACAaiVfT8AE5sB9o"/>
+</div>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+<!-- Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-[#1a1d23] p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<span class="text-slate-500 text-sm font-semibold">Total Revenue</span>
+<div class="p-2 bg-green-500/10 text-green-500 rounded-lg">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+</div>
+<h3 class="text-3xl font-bold tracking-tight mb-1">$45,280.00</h3>
+<p class="text-xs text-green-500 font-bold">+12.5% <span class="text-slate-500 font-normal">from last month</span></p>
+</div>
+<div class="bg-white dark:bg-[#1a1d23] p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<span class="text-slate-500 text-sm font-semibold">Pending Payments</span>
+<div class="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+</div>
+<h3 class="text-3xl font-bold tracking-tight mb-1">12 / $1,200.00</h3>
+<p class="text-xs text-amber-500 font-bold">-2.4% <span class="text-slate-500 font-normal">than previous week</span></p>
+</div>
+<div class="bg-white dark:bg-[#1a1d23] p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<span class="text-slate-500 text-sm font-semibold">Overdue</span>
+<div class="p-2 bg-red-500/10 text-red-500 rounded-lg">
+<span class="material-symbols-outlined">priority_high</span>
+</div>
+</div>
+<h3 class="text-3xl font-bold tracking-tight mb-1 text-red-500">5 Payments</h3>
+<p class="text-xs text-green-500 font-bold">+1.2% <span class="text-slate-500 font-normal">recovery rate</span></p>
+</div>
+</div>
+<!-- Table Section -->
+<div class="bg-white dark:bg-[#1a1d23] rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm flex flex-col">
+<div class="p-6 flex items-center justify-between">
+<div>
+<h2 class="text-xl font-bold">Recent Transactions</h2>
+<p class="text-sm text-slate-500">Monitor and manage all incoming payments</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+                                Filter
+                            </button>
+<a class="text-sm font-bold text-primary hover:underline px-2" href="#">View All</a>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50/50 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-y border-slate-200 dark:border-slate-800/50">
+<th class="px-6 py-4">Member</th>
+<th class="px-6 py-4">Amount</th>
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4">Method</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800/50">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Member" class="w-10 h-10 rounded-full object-cover" data-alt="Close up portrait of a male gym member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB668oFnGX0zvJaZJ_SmMTbvUJEqqB4CRnhEXzmlCDrVz1wz_Vn0rCMDPI8M0iQp_25zCqaRPmxRkaT7cP1uSdhI4mFmpwNyZaP8toYlE9g6lL87IHdEwCvMTVWZ8f0aRlToRb2RW1Sb-Y6FBoNGYWWpa4qyIfDhlIK0-s56_0IRA1Tj_noGypt0ukei0hyxJuEKEHZVgyUkLYPI_NBqdEJAwVYy08_FCYt-pFpJ39QipP2cApyTMHZGQ-kILlccDKAUL3Jt48CzvZk"/>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Alex Johnson</span>
+<span class="text-[11px] text-slate-500">Platinum Member</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$120.00</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Oct 24, 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">credit_card</span>
+                                            Credit Card
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-green-500/10 text-green-600 dark:text-green-500">
+                                            Paid
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Member" class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a smiling female gym member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAR7oR7d7GnnNB1lDE0txoSkK0tjQ3XoPfpbGuISnBuvP20KJN0-EqMlF0zHG1Uq4DDcPVZA-lhAY_HRQ2Q92fD-BBwJk3l7MpgF9ogPjm05jBU5iJvW4uZ8s1AkkMNXAw7Te4fr3A4KzApOM2B2i6oRhbm2RNGkm8kJEx5LPorkdFhOyaxFxESBRw4lBgrY51_7Uln7-ZOy2dW3EBDiN1lm4YkSXwHLRwoo-ud7smZFUnEiGF4fl6BRBcf-uuNyR16OAM_a8GcxIPf"/>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Maria Garcia</span>
+<span class="text-[11px] text-slate-500">Standard Membership</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$85.00</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Oct 25, 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">payments</span>
+                                            Cash
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-500">
+                                            Pending
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Member" class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a middle aged male gym member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhISQ6KX8cZ0jOnomzKk7n96A8wJjogfTLH52KC5CPsxGYWCMpDgvt9BqK3lDKkgV2DlmQkMjsF4BN56fNfGFHJQsOro7LNxkB7pj-S3NGuwxx9_Ck6Tq9q1OMYdUk_y6ahGW6iwynDuhuD8_du5RFn9Vt3SCfK8AUSRr2S-JbDkBc16CmmMTjaGg_tOW25Ct54qjeILw7GUAeFJWyZIAkMt0Jcctffxt2tAV69fLYxu3fwRKDzIyrRCZJYJzFysf00vI2Fgdl7VKs"/>
+<div class="flex flex-col">
+<span class="text-sm font-bold">James Wilson</span>
+<span class="text-[11px] text-slate-500">Personal Training Bundle</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$150.00</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Oct 20, 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">account_balance_wallet</span>
+                                            Apple Pay
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-500">
+                                            Overdue
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Member" class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a female gym member with headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM1tHeg2yjE2nsQAFWAfYS8zF9_xhc48eQzauUshAMon-B14WFS_DXEjLI-juPf24OJOTyUch85rLoJ7e41KK2Doa-eJHJwLmbVcuxD5i6s5QJ1ONXfN4AHYqw3c_5uVz2sQMM7uDsACfWtf8kHwWjSHrArIqnByEajjC8Ro4k_Lg2rOKH7ufbkxoXZKZ2zSuUwpv87lPdaOYwoBD461bhyeiDaNq7-29FzMsDDftr6Y5cehO2_kELk2xj5MG2Go3w0HyThAMllgmQ"/>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Sarah Brown</span>
+<span class="text-[11px] text-slate-500">Yoga Plus Plan</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$120.00</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Oct 26, 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">credit_card</span>
+                                            Credit Card
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-green-500/10 text-green-600 dark:text-green-500">
+                                            Paid
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Member" class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a male gym member in athletic gear" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZvxhq8TUkyHC1yHctda9UNcczb8Mqv-B6wN98Qgbnud9gShnyYdmMI729IdNh_ONKjX3MdK18uv1MTTzSX2JATUEypj20fpWma8KJtxZZSX85_j7IMpLtTdU7I0wDTEorIzqq5Swu5M_n4TV6w1juYm8uh5_ovuwv58ZA6bNWJTbHbs1c5RxghGdvXd0aSpmPrAkyo_Ct2RcmyQNvNTbE9Rm_5haS-5FLwPGv6teEQ0qD87YpdsRhImd7_sRMWg2z7Eajq8xHxRWc"/>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Robert Reed</span>
+<span class="text-[11px] text-slate-500">Standard Membership</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$200.00</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Oct 22, 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">account_balance</span>
+                                            Bank Transfer
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-green-500/10 text-green-600 dark:text-green-500">
+                                            Paid
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-6 border-t border-slate-200 dark:border-slate-800/50 flex items-center justify-between">
+<span class="text-sm text-slate-500">Showing 1 to 5 of 45 results</span>
+<div class="flex items-center gap-1">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white text-sm font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold">3</button>
+<span class="px-2 text-slate-400">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold">9</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

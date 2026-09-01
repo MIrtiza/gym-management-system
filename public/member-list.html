@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Members Management | IronCore Gym</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#0d6cf2",
+                "background-light": "#f5f7f8",
+                "background-dark": "#0a0a0a",
+                "surface-dark": "#161616",
+                "border-dark": "#262626",
+              },
+              fontFamily: {
+                "display": ["Manrope", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav { background: rgba(13, 108, 242, 0.1); border-right: 3px solid #0d6cf2; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex font-display">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-border-dark flex flex-col fixed h-screen bg-white dark:bg-surface-dark z-50">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">fitness_center</span>
+</div>
+<div>
+<h1 class="text-lg font-extrabold tracking-tight">IronCore</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400 font-medium">GYM MANAGEMENT</p>
+</div>
+</div>
+<nav class="flex-1 mt-4">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-primary bg-primary/10 border-r-4 border-primary transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-semibold">Members</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-medium">Attendance</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-medium">Payments</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">card_membership</span>
+<span class="font-medium">Memberships</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">exercise</span>
+<span class="font-medium">Services</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-medium">Reports</span>
+</a>
+</li>
+</ul>
+</nav>
+<div class="p-6 border-t border-slate-200 dark:border-border-dark">
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+<div class="mt-6 flex items-center gap-3 bg-slate-100 dark:bg-border-dark p-3 rounded-xl">
+<div class="size-8 rounded-full bg-slate-300 dark:bg-slate-700 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Admin user profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2C01BHY8R2EPkF20f1l0s-ksXxu_AQ26aMMb5uqS4vC0cSKd-Ag-3A8Oi1Y7TtG4F_XfDNvvBJzaXBtTzcQ_WUV56nG_rzK8A6epqOgZgRex7mUXDlIWidyrgbuiHfrvDIkHy_6kgp_pb0nsZ5r5IH4u2ByOjVK129OGbApML2iv4j1hz12jaUiKpntl1adCsgMCCYyEPyXHoc0XWWLgYdA2UM2s5FgnhEPMiPGB23MdzIfXGfbAbb1oDIqbvInjEHHSfXKX7XPQI"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">Alex Carter</p>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Administrator</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- Header -->
+<header class="h-20 border-b border-slate-200 dark:border-border-dark bg-white/80 dark:bg-surface-dark/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-8">
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-background-dark border-none rounded-lg py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-400" placeholder="Search members by name, ID or email..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border-dark text-slate-500 hover:bg-slate-50 dark:hover:bg-border-dark transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
+</button>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl">add</span>
+                    Add New Member
+                </button>
+</div>
+</header>
+<!-- Content -->
+<div class="p-8">
+<div class="flex flex-col gap-8">
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark">
+<p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Total Members</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-extrabold tracking-tight">2,842</h3>
+<span class="text-emerald-500 text-xs font-bold">+12%</span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark">
+<p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Active Now</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-extrabold tracking-tight">156</h3>
+<span class="text-emerald-500 text-xs font-bold">+5%</span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark">
+<p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Pending Requests</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-extrabold tracking-tight">24</h3>
+<span class="text-amber-500 text-xs font-bold">New</span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark">
+<p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Expiring Soon</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-extrabold tracking-tight">42</h3>
+<span class="text-red-500 text-xs font-bold">-2%</span>
+</div>
+</div>
+</div>
+<!-- Main Content Card -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-border-dark overflow-hidden flex flex-col shadow-sm">
+<!-- Table Header/Tabs -->
+<div class="px-6 pt-6 flex items-center justify-between border-b border-slate-200 dark:border-border-dark">
+<div class="flex gap-8">
+<button class="pb-4 border-b-2 border-primary text-primary font-bold text-sm">All Members</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold text-sm transition-all">Active</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold text-sm transition-all">Inactive</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold text-sm transition-all">Pending</button>
+</div>
+<div class="pb-4 flex gap-3">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-border-dark text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                                Filter
+                            </button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-border-dark text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                                Export
+                            </button>
+</div>
+</div>
+<!-- Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-background-dark/50">
+<tr>
+<th class="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Member</th>
+<th class="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Membership Plan</th>
+<th class="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Status</th>
+<th class="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Expiry Date</th>
+<th class="px-6 py-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-400 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-border-dark">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full border border-slate-200 dark:border-border-dark overflow-hidden bg-slate-100 dark:bg-border-dark">
+<img class="w-full h-full object-cover" data-alt="Male gym member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjMenwYUlLyU_y9Uo8VlZsklH_KnIr7gRhvNALP5bgkPnGoibZf8gUIHWwo-5Vgn2xMZnsCfhjTp4J78wYKuO-we_P0YhoCiPjvzTjUhVDpcRSJrMELcpzpN07SYTQySFtaR0MbJoKe4UWOCyaQjFGcQp6x0LCNx1Z5Q0WNUYqJ3DWUngCEFHcct7egLhxY3E3cYaH-nGNZMl3M-HefOSlhbmYQN-YNFvzVhYysQza1stej68FHwpfD6AbwJiyW3S7vZmrDkTPbSB_"/>
+</div>
+<div>
+<p class="font-bold text-sm">Marcus Thompson</p>
+<p class="text-xs text-slate-500">ID: #IC-4820</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Elite Yearly</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">$1,200 / year</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500">
+<span class="size-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm text-slate-600 dark:text-slate-300 font-medium">Oct 12, 2024</p>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">visibility</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full border border-slate-200 dark:border-border-dark overflow-hidden bg-slate-100 dark:bg-border-dark">
+<img class="w-full h-full object-cover" data-alt="Female gym member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0XFOpJ0rx8xu2zES1G5O0dTP0sclBst6CwqxxmiMinHr7-qDb8fk6FDnC98ISAXteKK107uOsUfwtF_WU5aQxJMfoRysL--FZFCnf0rfw6_RpNQpksz8IxKLdfee1aCIAP1Uz2KgS_QAdERRrpS5Y31wG8mAsOhIR1NaHlilcSVIVm5jmoyqbHi1NRpkI8mkDqO_vfth2SgCvyT4mEr5kzWO-bQ93qw_Bz4P1uCVHdp6XLt8bpXyghfUNq7NIycR-GwTW7fy9Jr6m"/>
+</div>
+<div>
+<p class="font-bold text-sm">Elena Rodriguez</p>
+<p class="text-xs text-slate-500">ID: #IC-4821</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Pro Monthly</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">$99 / month</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500">
+<span class="size-1.5 bg-amber-500 rounded-full mr-1.5"></span>
+                                            Expiring Soon
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm text-slate-600 dark:text-slate-300 font-medium">Aug 24, 2024</p>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">visibility</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full border border-slate-200 dark:border-border-dark overflow-hidden bg-slate-100 dark:bg-border-dark">
+<img class="w-full h-full object-cover" data-alt="Male athlete member profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZFFG76YpAn-5YXCKytbAXn7ULhUsZNqS2Sz3pg5nMfiT1IyRv_cPdBGbeG2Ymul5FU99Q9HodyOKY_mDmpmMAIK52O8tWDYJ_Yy7JQy06wZOp3E2q5A_SZrMpyhMJSG2e6yTeMgDjLfVrDdU-HzjznwuMa798ZHNSrk5c6MVm8nK2bEksEQxpozRVlyfNdzigaMAdT5dyBVjtjc4M7ZmrlfFUyFwK3gWTU-smIlFzKAi-39wpjN5kg1k7aE-EhdzUhmXQP4TPH8B7"/>
+</div>
+<div>
+<p class="font-bold text-sm">Jordan Smith</p>
+<p class="text-xs text-slate-500">ID: #IC-4825</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Basic Starter</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">$49 / month</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/10 text-slate-500">
+<span class="size-1.5 bg-slate-400 rounded-full mr-1.5"></span>
+                                            Inactive
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm text-slate-600 dark:text-slate-300 font-medium">Jul 01, 2024</p>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">visibility</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full border border-slate-200 dark:border-border-dark overflow-hidden bg-slate-100 dark:bg-border-dark">
+<img class="w-full h-full object-cover" data-alt="Female member profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYbJ8y5lkbrMW_cdA0Fo7qOiFBV545uRX2XNnRDiuN9dsQ42itmsrYBydQZ_A_A6zmz8Zl4Uhe_heTkdh86GdHYrVgDGrslRKyXAPewsR5rzpX_mx08b51QpsQ4pm1rCLtybq6UT-2meQBXUiB_qBNQMy7zxlG_TyM2VxqIn2Ep1sYMy4_2Lfv6uHPCb2DzGAcKiXi1K6_MGx_LC1JhLo6fKNPqzLG62k2lbq7Wy9RazVBuFD8XQPegrFCW-w-KhEoFw8HpSKG7Fez"/>
+</div>
+<div>
+<p class="font-bold text-sm">Sarah Jenkins</p>
+<p class="text-xs text-slate-500">ID: #IC-4829</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Elite Yearly</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">$1,200 / year</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500">
+<span class="size-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm text-slate-600 dark:text-slate-300 font-medium">Dec 15, 2024</p>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">visibility</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-border-dark text-slate-400 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 bg-slate-50 dark:bg-background-dark/50 border-t border-slate-200 dark:border-border-dark flex items-center justify-between">
+<div class="flex items-center gap-2">
+<p class="text-xs text-slate-500 font-medium">Showing</p>
+<select class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-md text-xs py-1 pl-2 pr-8 font-bold focus:ring-primary focus:border-primary transition-all">
+<option>10</option>
+<option>25</option>
+<option>50</option>
+</select>
+<p class="text-xs text-slate-500 font-medium">of 2,842 members</p>
+</div>
+<div class="flex items-center gap-1">
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border-dark text-slate-400 hover:bg-slate-100 dark:hover:bg-border-dark transition-all disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg bg-primary text-white text-xs font-extrabold transition-all">1</button>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border-dark text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-border-dark transition-all">2</button>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border-dark text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-border-dark transition-all">3</button>
+<span class="text-slate-400 px-1">...</span>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border-dark text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-border-dark transition-all">28</button>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border-dark text-slate-400 hover:bg-slate-100 dark:hover:bg-border-dark transition-all">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Overlay Info -->
+<footer class="mt-auto p-8 border-t border-slate-200 dark:border-border-dark bg-white dark:bg-surface-dark flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+<p>© 2024 IronCore Systems. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors" href="#">Support</a>
+</div>
+</footer>
+</main>
+</body></html>

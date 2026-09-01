@@ -78,8 +78,8 @@ export const RecentCheckinsTable = ({
   data = defaultData,
 }: RecentCheckinsTableProps) => {
   return (
-    <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-200 dark:border-border-dark shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-slate-200 dark:border-border-dark flex items-center justify-between">
+    <div className="bg-white dark:bg-[#1a1d23] rounded-2xl border border-slate-200 dark:border-[#2d333d] shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-slate-200 dark:border-[#2d333d] flex items-center justify-between">
         <h3 className="font-bold text-lg">{title}</h3>
         <button className="text-sm font-bold text-primary hover:underline">
           View All
@@ -87,7 +87,7 @@ export const RecentCheckinsTable = ({
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 dark:bg-background-dark/30">
+          <thead className="bg-slate-50 dark:bg-[#0a0a0a]/30">
             <tr>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Member
@@ -110,7 +110,7 @@ export const RecentCheckinsTable = ({
             {data.map((record, index) => (
               <tr
                 key={record.id}
-                className={`hover:bg-slate-50 dark:hover:bg-background-dark/20 transition-all ${
+                className={`hover:bg-slate-100/30 dark:hover:bg-slate-800/20 transition-all ${
                   index === data.length - 1 ? "border-none" : ""
                 }`}
               >

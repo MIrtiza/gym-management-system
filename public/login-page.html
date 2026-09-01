@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IronCore | Admin Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d6cf2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .glass-effect {
+            background: rgba(16, 23, 34, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-white antialiased overflow-hidden">
+<!-- Background Wrapper -->
+<div class="relative min-h-screen w-full flex items-center justify-center bg-cover bg-center" data-alt="Cinematic dark gym interior with dumbbells and weights" style="background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBMhgd9M4__4IJhNmZhO1-KRnnhc_I7ahSStDkMZGvue0eujtLE0aKsg_exIZ5iVuOVpsQtoFPRSavgWizyb-y8pXYBLfOB_1xqcTFrXdroMxYrQMLn--z8g5djkgHyvNYqfihLrimldamtqHUZiZ7sx_5gxjyddlmtUKh-9puqvp-FGHgDXqTEg19h7VJ7TL7J4PjoMNfy9yCI-BgJeN0PdqYP0tdY-5tQIM6yCzMNLJoaQD5sxkiIHLZmY9dMcNGIP_cyMvm0gG3U');">
+<!-- Login Container -->
+<div class="w-full max-w-[480px] px-6 py-12">
+<!-- Brand Section -->
+<div class="text-center mb-10">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-xl mb-4 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-4xl text-white">fitness_center</span>
+</div>
+<h1 class="text-4xl font-extrabold tracking-tight text-white mb-2">IRONCORE</h1>
+<p class="text-slate-400 font-medium">Gym Management System</p>
+</div>
+<!-- Login Card -->
+<div class="glass-effect rounded-xl p-8 shadow-2xl">
+<form action="#" class="space-y-6" method="POST">
+<!-- Role Selection -->
+
+<!-- Email Field -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-300">Email Address</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">mail</span>
+</div>
+<input class="block w-full pl-11 pr-4 py-3.5 bg-background-dark/40 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="admin@ironcore.com" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="text-sm font-semibold text-slate-300">Password</label>
+<a class="text-xs font-bold text-primary hover:text-primary/80 transition-colors uppercase tracking-tight" href="#">Forgot Password?</a>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">lock</span>
+</div>
+<input class="block w-full pl-11 pr-12 py-3.5 bg-background-dark/40 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="••••••••" type="password"/>
+<button class="absolute inset-y-0 right-0 pr-4 flex items-center" type="button">
+<span class="material-symbols-outlined text-slate-400 text-[20px] hover:text-white transition-colors">visibility</span>
+</button>
+</div>
+</div>
+<!-- Sign In Button -->
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-lg shadow-lg shadow-primary/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2" type="submit">
+<span>SIGN IN TO ADMIN CONSOLE</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</form>
+</div>
+<!-- Footer Links -->
+<div class="mt-8 flex flex-col items-center gap-4">
+<p class="text-slate-500 text-sm">
+                    Don't have an account? <a class="text-primary font-bold hover:underline" href="#">Contact Support</a>
+</p>
+<div class="flex items-center gap-6 text-[11px] font-bold text-slate-600 uppercase tracking-widest">
+<a class="hover:text-slate-400" href="#">Terms of Service</a>
+<span>•</span>
+<a class="hover:text-slate-400" href="#">Privacy Policy</a>
+<span>•</span>
+<span>v2.4.0</span>
+</div>
+</div>
+</div>
+<!-- Decorative Elements -->
+<div class="absolute bottom-10 right-10 hidden lg:block">
+<div class="text-right">
+<p class="text-white/20 text-8xl font-black italic select-none">STRENGTH</p>
+<p class="text-primary/20 text-8xl font-black italic select-none -mt-8">DISCIPLINE</p>
+</div>
+</div>
+</div>
+</body></html>

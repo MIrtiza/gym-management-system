@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Record Payment Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d6cf2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                        "modal-bg": "#1A1B1F",
+                        "input-bg": "#282f39",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .glass-blur {
+            backdrop-filter: blur(8px);
+            background-color: rgba(16, 23, 34, 0.8);
+        }
+        .select-custom-arrow {
+            appearance: none;
+            background-image: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(156,168,186)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e');
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased font-display">
+<!-- Blurred Background Mockup (Dashboard) -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none filter blur-sm opacity-50">
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<div class="flex justify-between items-center">
+<div class="h-8 w-48 bg-slate-700 rounded-lg"></div>
+<div class="h-10 w-32 bg-primary rounded-lg"></div>
+</div>
+<div class="grid grid-cols-4 gap-6">
+<div class="h-32 bg-slate-800 rounded-xl"></div>
+<div class="h-32 bg-slate-800 rounded-xl"></div>
+<div class="h-32 bg-slate-800 rounded-xl"></div>
+<div class="h-32 bg-slate-800 rounded-xl"></div>
+</div>
+<div class="h-96 bg-slate-800 rounded-xl"></div>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 glass-blur">
+<!-- Modal Container -->
+<div class="w-full max-w-[600px] bg-modal-bg dark:bg-[#1A1B1F] rounded-xl shadow-2xl border border-white/10 overflow-hidden">
+<!-- Header -->
+<div class="flex items-center justify-between p-6 border-b border-white/5">
+<h1 class="text-2xl font-bold text-white tracking-tight">Record New Payment</h1>
+<button class="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-400 hover:text-white">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 space-y-6">
+<!-- Member Search -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Select Member</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="w-full bg-input-bg border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg py-3 pl-11 pr-4 text-white placeholder:text-slate-500 transition-all outline-none" placeholder="Search by name or ID..." type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Fee Type -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Fee Type</label>
+<select class="select-custom-arrow w-full bg-input-bg border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg py-3 px-4 text-white outline-none">
+<option>Membership Renewal</option>
+<option>Personal Training</option>
+<option>Day Pass</option>
+<option>Locker Rental</option>
+</select>
+</div>
+<!-- Amount -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Amount</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+<span class="text-lg font-medium">$</span>
+</div>
+<input class="w-full bg-input-bg border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg py-3 pl-8 pr-4 text-white placeholder:text-slate-500 font-bold text-lg outline-none" placeholder="0.00" type="number"/>
+</div>
+</div>
+</div>
+<!-- Payment Method Grid -->
+<div class="space-y-4">
+<label class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Payment Method</label>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<!-- Credit Card - Active State Example -->
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-primary bg-primary/10 text-white transition-all">
+<span class="material-symbols-outlined mb-2 text-2xl">credit_card</span>
+<span class="text-xs font-semibold">Credit Card</span>
+</button>
+<!-- Cash -->
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-white/5 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white transition-all">
+<span class="material-symbols-outlined mb-2 text-2xl">payments</span>
+<span class="text-xs font-semibold">Cash</span>
+</button>
+<!-- Bank Transfer -->
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-white/5 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white transition-all">
+<span class="material-symbols-outlined mb-2 text-2xl">account_balance</span>
+<span class="text-xs font-semibold">Transfer</span>
+</button>
+<!-- Apple Pay -->
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-white/5 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white transition-all">
+<span class="material-symbols-outlined mb-2 text-2xl">contactless</span>
+<span class="text-xs font-semibold">Digital Wallet</span>
+</button>
+</div>
+</div>
+<!-- Receipt Note (Optional extra for visual weight) -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Internal Note</label>
+<textarea class="w-full bg-input-bg border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg p-4 text-white placeholder:text-slate-500 h-20 resize-none outline-none" placeholder="Add a note about this transaction..."></textarea>
+</div>
+</div>
+<!-- Footer -->
+<div class="p-6 bg-black/20 border-t border-white/5 flex flex-col sm:flex-row-reverse gap-3">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">check_circle</span>
+                    Process Payment
+                </button>
+<button class="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 font-semibold py-3 px-6 rounded-lg transition-all">
+                    Cancel
+                </button>
+</div>
+</div>
+</div>
+</body></html>
