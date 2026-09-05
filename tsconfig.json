@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "src/app/api/whatsapp/cron/route.ts.bak"  ],
+, "src/app/api/whatsapp/cron/route.ts"  ],
   "exclude": ["node_modules", "supabase/functions"]
 }
